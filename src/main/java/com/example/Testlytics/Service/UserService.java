@@ -9,6 +9,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import org.springframework.web.multipart.MultipartFile;
+import java.io.IOException;
+import java.util.Base64;
 
 @Service
 public class UserService {
@@ -103,5 +106,21 @@ public Optional<User> getUserById(Integer userId) {
             return true;
         }
         return false;
+    }
+    public User uploadUserImage(Integer userId, MultipartFile file) throws IOException {
+        Optional<User> userOptional = userRepository.findById(userId);
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+            user.setImage(file.getBytes()); // Convert MultipartFile to byte[]
+            return userRepository.save(user);
+        }
+        throw new RuntimeException("User not found!");
+    }
+    public String getUserImageBase64(Integer userId) {
+        Optional<User> userOptional = userRepository.findById(userId);
+        if (userOptional.isPresent() && userOptional.get().getImage() != null) {
+            return Base64.getEncoder().encodeToString(userOptional.get().getImage());
+        }
+        throw new RuntimeException("User image not found!");
     }
 }

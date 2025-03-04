@@ -25,8 +25,9 @@ public class User {
     @ManyToOne
     @JoinColumn(name = "role_id", nullable = false)
     private Role role;
-
-    private String image;
+    @Lob
+    @Column(columnDefinition = "BYTEA") // PostgreSQL uses BYTEA for storing binary data
+    private byte[] image;
 
     private LocalDateTime createdOn = LocalDateTime.now();
     private LocalDateTime modifiedOn;
