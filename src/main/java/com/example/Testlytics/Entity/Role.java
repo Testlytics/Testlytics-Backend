@@ -1,4 +1,5 @@
 package com.example.Testlytics.Entity;
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -14,5 +15,5 @@ public class Role {
     private Long id;
 
     @Column(unique = true, nullable = false)
-    private String roleName;
+    private String roleName; // Changed to camelCase
 }

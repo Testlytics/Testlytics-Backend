@@ -24,4 +24,9 @@ public class RoleController {
     public Optional<Role> getRoleByName(@PathVariable String roleName) {
         return roleService.getRoleByName(roleName);
     }
+    @PostMapping
+    public Role createRole(@RequestBody Role role) {
+        return roleService.saveRole(role);
+}
+
 }
