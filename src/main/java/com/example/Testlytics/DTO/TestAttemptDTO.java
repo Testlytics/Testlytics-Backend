@@ -1,43 +1,32 @@
-package com.example.Testlytics.Entity;
+package com.example.Testlytics.DTO;
 
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "test_attempts")
-public class TestAttempt {
+public class TestAttemptDTO {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long attemptId;  // New Primary Key
-
-    @Column(name = "test_id", nullable = false)
-    private Long testId;  // Foreign Key reference to Test entity
-
-    @Column(name = "user_id", nullable = false)
-    private Long userId;  // Foreign Key reference to User entity
-
-    @Column(name = "score")
+    private Long attemptId;
+    private Long testId;
+    private String testDetails;  // New field
+    private Long userId;
     private Double score;
-
-    @Column(name = "attempt_start_time", nullable = false)
     private LocalDateTime attemptStartTime;
-
-    @Column(name = "attempt_end_time")
     private LocalDateTime attemptEndTime;
-
-    @Column(name = "feedback")
     private String feedback;
-
-    @Column(name = "query")
     private String query;
 
-    public TestAttempt() {}
+    public TestAttemptDTO() {}
 
-    public TestAttempt(Long testId, Long userId, LocalDateTime attemptStartTime) {
+    public TestAttemptDTO(Long attemptId, Long testId, String testDetails, Long userId, Double score,
+                          LocalDateTime attemptStartTime, LocalDateTime attemptEndTime, String feedback, String query) {
+        this.attemptId = attemptId;
         this.testId = testId;
+        this.testDetails = testDetails;
         this.userId = userId;
+        this.score = score;
         this.attemptStartTime = attemptStartTime;
+        this.attemptEndTime = attemptEndTime;
+        this.feedback = feedback;
+        this.query = query;
     }
 
     // Getters and Setters
@@ -55,6 +44,14 @@ public class TestAttempt {
 
     public void setTestId(Long testId) {
         this.testId = testId;
+    }
+
+    public String getTestDetails() {
+        return testDetails;
+    }
+
+    public void setTestDetails(String testDetails) {
+        this.testDetails = testDetails;
     }
 
     public Long getUserId() {

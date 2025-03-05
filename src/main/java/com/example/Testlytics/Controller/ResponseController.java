@@ -1,31 +1,29 @@
 package com.example.Testlytics.Controller;
 
+import com.example.Testlytics.DTO.ResponseDTO;
 import com.example.Testlytics.Entity.Response;
 import com.example.Testlytics.Service.ResponseService;
-import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Optional;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/responses")
 public class ResponseController {
 
-    private final ResponseService responseService;
+    @Autowired
+    private ResponseService responseService;
 
-    public ResponseController(ResponseService responseService) {
-        this.responseService = responseService;
-    }
-
+    // Submit a response
     @PostMapping
-    public ResponseEntity<Response> submitResponse(@RequestBody Response response) {
-        Response savedResponse = responseService.saveResponse(response);
-        return ResponseEntity.status(201).body(savedResponse);
+    public ResponseDTO submitResponse(@RequestBody Response response) {
+        return responseService.saveResponse(response);
     }
 
-    @GetMapping("/{responseId}")
-    public ResponseEntity<Response> getResponse(@PathVariable Long responseId) {
-        Optional<Response> response = responseService.getResponse(responseId);
-        return response.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    // Get responses by testId
+    @GetMapping("/{testId}")
+    public List<ResponseDTO> getResponses(@PathVariable Long testId) {
+        return responseService.getResponsesByTestId(testId);
     }
 }

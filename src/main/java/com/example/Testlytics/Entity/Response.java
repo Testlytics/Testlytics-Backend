@@ -5,31 +5,28 @@ import lombok.*;
 
 @Entity
 @Table(name = "responses")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class Response {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "response_id")
-    private Long responseId;
+    private Long responseId; // Primary Key
 
     @ManyToOne
     @JoinColumn(name = "test_id", nullable = false)
-    private TestAttempt test; // Assuming a `Test` entity exists
-
-    @ManyToOne
-    @JoinColumn(name = "question_id", nullable = false)
-    private Question question; // Assuming a `Question` entity exists
+    private Test test; // Foreign Key
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
-    private User user; // Assuming a `User` entity exists
+    private User user; // Foreign Key
 
-    @Column(name = "selected_option_id", nullable = false)
+    @ManyToOne
+    @JoinColumn(name = "question_id", nullable = false)
+    private Question question; // Foreign Key
+
     private Long selectedOptionId;
-
-    @Column(name = "is_correct", nullable = false)
     private Boolean isCorrect;
 }

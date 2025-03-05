@@ -1,25 +1,43 @@
 package com.example.Testlytics.Service;
 
+import com.example.Testlytics.DTO.ResponseDTO;
 import com.example.Testlytics.Entity.Response;
 import com.example.Testlytics.Repository.ResponseRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ResponseService {
 
-    private final ResponseRepository responseRepository;
+    @Autowired
+    private ResponseRepository responseRepository;
 
-    public ResponseService(ResponseRepository responseRepository) {
-        this.responseRepository = responseRepository;
+    // Convert Entity to DTO
+    private ResponseDTO convertToDTO(Response response) {
+        return new ResponseDTO(
+                response.getResponseId(),
+                response.getTest().getTestId(),
+                response.getUser().getUserId(),
+                response.getQuestion().getQuestionId(),
+                response.getSelectedOptionId(),
+                response.getIsCorrect()
+        );
     }
 
-    public Response saveResponse(Response response) {
-        return responseRepository.save(response);
+    // Submit a response
+    public ResponseDTO saveResponse(Response response) {
+        Response savedResponse = responseRepository.save(response);
+        return convertToDTO(savedResponse);
     }
 
-    public Optional<Response> getResponse(Long responseId) {
-        return responseRepository.findById(responseId);
+    // Get responses for a test
+    public List<ResponseDTO> getResponsesByTestId(Long testId) {
+        return responseRepository.findByTestTestId(testId)
+                .stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
     }
 }
