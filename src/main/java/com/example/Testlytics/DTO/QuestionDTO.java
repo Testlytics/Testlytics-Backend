@@ -7,13 +7,21 @@ import java.util.UUID;
 @Getter
 @Setter
 @NoArgsConstructor
-@Builder
+@AllArgsConstructor
 public class QuestionDTO {
     private UUID questionId;
-    private UUID testId; // Only store testId, not the entire TestDetails entity
+    private UUID testId;
     private String questionText;
-    private byte[] image; // Store image as byte[] instead of Base64
     private String answer;
+    private byte[] image;
+
+    // Constructor without image
+    public QuestionDTO(UUID questionId, UUID testId, String questionText, String answer) {
+        this.questionId = questionId;
+        this.testId = testId;
+        this.questionText = questionText;
+        this.answer = answer;
+    }
 
     public UUID getQuestionId() {
         return questionId;
@@ -39,14 +47,6 @@ public class QuestionDTO {
         this.questionText = questionText;
     }
 
-    public byte[] getImage() {
-        return image;
-    }
-
-    public void setImage(byte[] image) {
-        this.image = image;
-    }
-
     public String getAnswer() {
         return answer;
     }
@@ -55,12 +55,11 @@ public class QuestionDTO {
         this.answer = answer;
     }
 
-    public QuestionDTO(UUID questionId, UUID testId, String questionText, byte[] image, String answer) {
-        this.questionId = questionId;
-        this.testId = testId;
-        this.questionText = questionText;
-        this.image = image;
-        this.answer = answer;
+    public byte[] getImage() {
+        return image;
     }
 
+    public void setImage(byte[] image) {
+        this.image = image;
+    }
 }

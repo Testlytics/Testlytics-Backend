@@ -2,6 +2,8 @@ package com.example.Testlytics.Entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.UuidGenerator;
 
 import java.util.UUID;
 
@@ -11,27 +13,33 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class Question {
-
     @Id
     @GeneratedValue
+    @UuidGenerator
     @Column(name = "question_id", updatable = false, nullable = false)
     private UUID questionId;
 
     @ManyToOne
-    @JoinColumn(name = "test_id", nullable = false)
-    private TestDetails test; // Foreign key reference to TestDetails
+    @JoinColumn(name = "test_id", nullable = false) // Foreign key reference
+    private TestDetails testDetails;
 
-    @Column(name = "question", nullable = false, columnDefinition = "TEXT")
+    @Column(name = "question_text", nullable = false)
     private String questionText;
 
+    @Column(name = "answer", nullable = false)
+    private String answer;
+
     @Lob
-    @Column(name = "image", columnDefinition = "BYTEA")
+    @Column(name = "image")
     private byte[] image;
 
-    @Column(name = "answer", nullable = false, columnDefinition = "TEXT")
-    private String answer; // Stores the correct answer as text
+    // Constructor without image
+    public Question(TestDetails testDetails, String questionText, String answer) {
+        this.testDetails = testDetails;
+        this.questionText = questionText;
+        this.answer = answer;
+    }
 
     public UUID getQuestionId() {
         return questionId;
@@ -41,20 +49,12 @@ public class Question {
         this.questionId = questionId;
     }
 
-    public TestDetails getTest() {
-        return test;
+    public TestDetails getTestDetails() {
+        return testDetails;
     }
 
-    public void setTest(TestDetails test) {
-        this.test = test;
-    }
-
-    public byte[] getImage() {
-        return image;
-    }
-
-    public void setImage(byte[] image) {
-        this.image = image;
+    public void setTestDetails(TestDetails testDetails) {
+        this.testDetails = testDetails;
     }
 
     public String getQuestionText() {
@@ -71,5 +71,13 @@ public class Question {
 
     public void setAnswer(String answer) {
         this.answer = answer;
+    }
+
+    public byte[] getImage() {
+        return image;
+    }
+
+    public void setImage(byte[] image) {
+        this.image = image;
     }
 }
