@@ -3,6 +3,10 @@ package com.example.Testlytics.Service;
 import com.example.Testlytics.Entity.Role;
 import com.example.Testlytics.Entity.User;
 import com.example.Testlytics.Repository.UserRepository;
+import org.springframework.transaction.annotation.Transactional;
+
+
+
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -117,22 +121,22 @@ public class UserService {
         return false;
     }
 
-    // Upload User Image
+    // Upload User Image (must be transactional for LOB access)
+    @Transactional
     public User uploadUserImage(Integer userId, MultipartFile file) throws IOException {
-        Optional<User> userOptional = userRepository.findById(userId);
-        if (userOptional.isPresent()) {
-            User user = userOptional.get();
-            user.setImage(file.getBytes()); // Convert MultipartFile to byte[]
-            return userRepository.save(user);
-        }
-        throw new RuntimeException("User not found!");
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found!"));
+        user.setImage(file.getBytes()); // Convert MultipartFile to byte[]
+        return userRepository.save(user);
     }
 
-    // Get User Image as Base64 String
+    // Get User Image as Base64 String (read-only transaction)
+    @Transactional(readOnly = true)
     public String getUserImageBase64(Integer userId) {
-        Optional<User> userOptional = userRepository.findById(userId);
-        if (userOptional.isPresent() && userOptional.get().getImage() != null) {
-            return Base64.getEncoder().encodeToString(userOptional.get().getImage());
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found!"));
+        if (user.getImage() != null) {
+            return Base64.getEncoder().encodeToString(user.getImage());
         }
         throw new RuntimeException("User image not found!");
     }

@@ -4,14 +4,13 @@ import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
-
 import org.springframework.beans.factory.annotation.Value;
-
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
 import java.util.Date;
-
+import java.util.HashMap;
+import java.util.Map;
 
 @Component
 public class JwtTokenProvider {
@@ -32,21 +31,25 @@ public class JwtTokenProvider {
         this.key = Keys.hmacShaKeyFor(secretKey.getBytes());
     }
 
+    // Create token with role stored as "ROLE_ADMIN", etc.
     public String createToken(String email, String roleName) {
         Date now = new Date();
         Date validity = new Date(now.getTime() + validityInMilliseconds);
-    
+
+        Map<String, Object> claims = new HashMap<>();
+        // You can also store authorities in a claim if needed:
+        claims.put("authorities", java.util.Collections.singletonList("ROLE_" + roleName));
+
         return Jwts.builder()
+                .setClaims(claims)
                 .setSubject(email)
-                .claim("role", roleName) // Store role as a claim
                 .setIssuedAt(now)
                 .setExpiration(validity)
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
-    
 
-    // ✅ Validate the token
+    // Validate the token
     public boolean validateToken(String token) {
         try {
             Jws<Claims> claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
@@ -56,20 +59,7 @@ public class JwtTokenProvider {
         }
     }
 
-    // ✅ Extract username from token
-    public String getUsername(String token) {
-        return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody().getSubject();
-    }
-
-    public String resolveToken(HttpServletRequest request) {
-        String bearerToken = request.getHeader("Authorization");
-        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7); // Remove "Bearer " prefix
-        }
-        return null;
-    }
-    
-
+    // Extract email (username) from token
     public String getEmail(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(key)
@@ -78,6 +68,13 @@ public class JwtTokenProvider {
                 .getBody()
                 .getSubject();
     }
-    
-    
+
+    // Resolve token from the request header
+    public String resolveToken(HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);
+        }
+        return null;
+    }
 }
