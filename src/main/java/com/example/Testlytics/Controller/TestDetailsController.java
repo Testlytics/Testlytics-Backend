@@ -1,8 +1,11 @@
 package com.example.Testlytics.Controller;
 
+import com.example.Testlytics.DTO.ApiResponse;
 import com.example.Testlytics.DTO.TestDetailsDTO;
 import com.example.Testlytics.Service.TestDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,38 +19,44 @@ public class TestDetailsController {
     @Autowired
     private TestDetailsService testDetailsService;
 
-    // ✅ GET ALL TESTS - Simply call the service
+    // ✅ GET ALL TESTS
     @GetMapping
     @PreAuthorize("hasAnyRole('STUDENT', 'ADMIN')")
-    public List<TestDetailsDTO> getAllTests() {
-        return testDetailsService.getAllTests();
+    public ResponseEntity<ApiResponse<List<TestDetailsDTO>>> getAllTests() {
+        List<TestDetailsDTO> tests = testDetailsService.getAllTests();
+        return ResponseEntity.ok(new ApiResponse<>(200, "OK", "All tests retrieved successfully", tests));
     }
 
-    // ✅ GET TEST BY ID - Simply call the service
+    // ✅ GET TEST BY ID
     @GetMapping("/{testdetailsId}")
     @PreAuthorize("hasAnyRole('STUDENT', 'ADMIN')")
-    public TestDetailsDTO getTestById(@PathVariable UUID testdetailsId) {
-        return testDetailsService.getTestById(testdetailsId);
+    public ResponseEntity<ApiResponse<TestDetailsDTO>> getTestById(@PathVariable UUID testdetailsId) {
+        TestDetailsDTO test = testDetailsService.getTestById(testdetailsId);
+        return ResponseEntity.ok(new ApiResponse<>(200, "OK", "Test retrieved successfully", test));
     }
 
-    // ✅ CREATE TEST - Simply call the service
+    // ✅ CREATE TEST
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public TestDetailsDTO createTest(@RequestBody TestDetailsDTO testDetailsDTO) {
-        return testDetailsService.createTest(testDetailsDTO);
+    public ResponseEntity<ApiResponse<TestDetailsDTO>> createTest(@RequestBody TestDetailsDTO testDetailsDTO) {
+        TestDetailsDTO createdTest = testDetailsService.createTest(testDetailsDTO);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new ApiResponse<>(201, "Created", "Test created successfully", createdTest));
     }
 
-    // ✅ UPDATE TEST - Simply call the service
+    // ✅ UPDATE TEST
     @PutMapping("/{testdetailsId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public TestDetailsDTO updateTest(@PathVariable UUID testdetailsId, @RequestBody TestDetailsDTO testDetailsDTO) {
-        return testDetailsService.updateTest(testdetailsId, testDetailsDTO);
+    public ResponseEntity<ApiResponse<TestDetailsDTO>> updateTest(@PathVariable UUID testdetailsId, @RequestBody TestDetailsDTO testDetailsDTO) {
+        TestDetailsDTO updatedTest = testDetailsService.updateTest(testdetailsId, testDetailsDTO);
+        return ResponseEntity.ok(new ApiResponse<>(200, "OK", "Test updated successfully", updatedTest));
     }
 
-    // ✅ DELETE TEST - Simply call the service
+    // ✅ DELETE TEST
     @DeleteMapping("/{testdetailsId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public void deleteTest(@PathVariable UUID testdetailsId) {
+    public ResponseEntity<ApiResponse<Void>> deleteTest(@PathVariable UUID testdetailsId) {
         testDetailsService.deleteTest(testdetailsId);
+        return ResponseEntity.ok(new ApiResponse<>(200, "OK", "Test deleted successfully", null));
     }
 }

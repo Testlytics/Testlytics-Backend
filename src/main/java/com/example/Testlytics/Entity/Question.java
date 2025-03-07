@@ -30,8 +30,8 @@ public class Question {
     @Column(name = "image", columnDefinition = "BYTEA")
     private byte[] image;
 
-    @Column(name = "correct_option_id", nullable = false)
-    private UUID correctOptionId; // Foreign key from Options table
+    @Column(name = "answer", nullable = false, columnDefinition = "TEXT")
+    private String answer; // Stores the correct answer as text
 
     public UUID getQuestionId() {
         return questionId;
@@ -65,12 +65,11 @@ public class Question {
         this.questionText = questionText;
     }
 
-    public UUID getCorrectOptionId() {
-        return correctOptionId;
+    public String getAnswer() {
+        return answer;
     }
 
-    public void setCorrectOptionId(UUID correctOptionId) {
-        this.correctOptionId = correctOptionId;
+    public void setAnswer(String answer) {
+        this.answer = answer;
     }
-
 }

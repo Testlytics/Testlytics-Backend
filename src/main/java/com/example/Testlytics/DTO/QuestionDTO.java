@@ -12,8 +12,8 @@ public class QuestionDTO {
     private UUID questionId;
     private UUID testId; // Only store testId, not the entire TestDetails entity
     private String questionText;
-    private byte[] image;
-    private UUID correctOptionId;
+    private byte[] image; // Store image as byte[] instead of Base64
+    private String answer;
 
     public UUID getQuestionId() {
         return questionId;
@@ -47,22 +47,20 @@ public class QuestionDTO {
         this.image = image;
     }
 
-    public UUID getCorrectOptionId() {
-        return correctOptionId;
+    public String getAnswer() {
+        return answer;
     }
 
-    public void setCorrectOptionId(UUID correctOptionId) {
-        this.correctOptionId = correctOptionId;
+    public void setAnswer(String answer) {
+        this.answer = answer;
     }
 
-    public QuestionDTO(UUID questionId, UUID testId, String questionText, byte[] image, UUID correctOptionId) {
+    public QuestionDTO(UUID questionId, UUID testId, String questionText, byte[] image, String answer) {
         this.questionId = questionId;
         this.testId = testId;
         this.questionText = questionText;
         this.image = image;
-        this.correctOptionId = correctOptionId;
+        this.answer = answer;
     }
-
-
 
 }
