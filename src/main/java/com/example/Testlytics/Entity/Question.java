@@ -5,6 +5,7 @@ import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.UuidGenerator;
 
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -23,6 +24,9 @@ public class Question {
     @ManyToOne
     @JoinColumn(name = "test_id", nullable = false) // Foreign key reference
     private TestDetails testDetails;
+
+    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Options> options;
 
     @Column(name = "question_text", nullable = false)
     private String questionText;
