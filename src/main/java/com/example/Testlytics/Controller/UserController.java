@@ -1,6 +1,8 @@
 package com.example.Testlytics.Controller;
 
+import com.example.Testlytics.Entity.Role;
 import com.example.Testlytics.Entity.User;
+import com.example.Testlytics.Service.RoleService;
 import com.example.Testlytics.Service.UserService;
 import com.example.Testlytics.DTO.ApiResponse;
 import com.example.Testlytics.DTO.UserDTO;
@@ -22,15 +24,21 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+    
+    @Autowired
+    private RoleService roleService;
 
     @GetMapping
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<ApiResponse<List<UserDTO>>> getAllUsers(@RequestParam(required = false) String role) {
         List<User> users = userService.getAllActiveUsers(role);
         List<UserDTO> userDTOs = users.stream()
-                .map(UserDTO::fromUser)
+                .map(UserDTO::fromUserWithoutImage)
                 .collect(Collectors.toList());
-        ApiResponse<List<UserDTO>> response = new ApiResponse<>("success", "Users fetched successfully", userDTOs);
+
+        ApiResponse<List<UserDTO>> response = new ApiResponse<>(
+                200, "success", "Users fetched successfully", userDTOs
+        );
         return ResponseEntity.ok(response);
     }
 
@@ -39,85 +47,104 @@ public class UserController {
     public ResponseEntity<ApiResponse<UserDTO>> getUserById(@PathVariable Integer id) {
         Optional<User> userOptional = userService.getUserById(id);
         if (userOptional.isPresent()) {
-            UserDTO dto = UserDTO.fromUser(userOptional.get());
-            ApiResponse<UserDTO> response = new ApiResponse<>("success", "User fetched successfully", dto);
+            UserDTO dto = UserDTO.fromUserWithImage(userOptional.get());
+            ApiResponse<UserDTO> response = new ApiResponse<>(
+                    200, "success", "User fetched successfully", dto
+            );
             return ResponseEntity.ok(response);
         } else {
-            ApiResponse<UserDTO> response = new ApiResponse<>("error", "User not found", null);
+            ApiResponse<UserDTO> response = new ApiResponse<>(
+                    404, "error", "User not found", null
+            );
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
     }
 
     @PostMapping
     @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<ApiResponse<UserDTO>> createUser(@RequestBody User user, @RequestParam String roleName) {
-        User createdUser = userService.saveUser(user, roleName);
-        UserDTO dto = UserDTO.fromUser(createdUser);
-        ApiResponse<UserDTO> response = new ApiResponse<>("success", "User created successfully", dto);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<ApiResponse<UserDTO>> createUser(@RequestBody User user) {
+        if (user.getRole() == null || user.getRole().getId() == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ApiResponse<>(400, "error", "Role ID is required", null));
+        }
+        Optional<Role> roleOptional = roleService.getRoleById(user.getRole().getId());
+        if (roleOptional.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ApiResponse<>(400, "error", "Invalid role ID", null));
+        }
+        user.setRole(roleOptional.get());
+        User createdUser = userService.saveUser(user);
+        UserDTO dto = UserDTO.fromUserWithoutImage(createdUser);
+        ApiResponse<UserDTO> response = new ApiResponse<>(201, "success", "User created successfully", dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('STUDENT')")
-    public ResponseEntity<ApiResponse<UserDTO>> updateUser(@PathVariable Integer id,
-                                                           @RequestBody User user,
-                                                           @RequestParam String roleName) {
+    public ResponseEntity<ApiResponse<UserDTO>> updateUser(@PathVariable Integer id, @RequestBody User user) {
+        if (user.getRole() == null || user.getRole().getId() == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ApiResponse<>(400, "error", "Role ID is required", null));
+        }
+        Optional<Role> roleOptional = roleService.getRoleById(user.getRole().getId());
+        if (roleOptional.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ApiResponse<>(400, "error", "Invalid role ID", null));
+        }
+        user.setRole(roleOptional.get());
         try {
-            User updatedUser = userService.updateUser(id, user, roleName);
-            UserDTO dto = UserDTO.fromUser(updatedUser);
-            ApiResponse<UserDTO> response = new ApiResponse<>("success", "User updated successfully", dto);
-            return ResponseEntity.ok(response);
+            User updatedUser = userService.updateUser(id, user);
+            UserDTO dto = UserDTO.fromUserWithoutImage(updatedUser);
+            return ResponseEntity.ok(new ApiResponse<>(200, "success", "User updated successfully", dto));
         } catch (RuntimeException ex) {
-            ApiResponse<UserDTO> response = new ApiResponse<>("error", ex.getMessage(), null);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ApiResponse<>(404, "error", ex.getMessage(), null));
         }
     }
 
-    // Soft delete a user
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<ApiResponse<Void>> softDeleteUser(@PathVariable Integer id) {
         boolean deleted = userService.softDeleteUser(id);
         if (deleted) {
-            ApiResponse<Void> response = new ApiResponse<>("success", "User soft deleted successfully", null);
+            ApiResponse<Void> response = new ApiResponse<>(200, "success", "User soft deleted successfully", null);
             return ResponseEntity.ok(response);
         }
-        ApiResponse<Void> response = new ApiResponse<>("error", "User not found", null);
+        ApiResponse<Void> response = new ApiResponse<>(404, "error", "User not found", null);
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
-    // Restore a soft-deleted user
-    @PutMapping("/{id}/restore")
-    @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<ApiResponse<Void>> restoreUser(@PathVariable Integer id) {
-        boolean restored = userService.restoreUser(id);
-        if (restored) {
-            ApiResponse<Void> response = new ApiResponse<>("success", "User restored successfully", null);
-            return ResponseEntity.ok(response);
-        }
-        ApiResponse<Void> response = new ApiResponse<>("error", "User not found or not deleted", null);
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-    }
+    // @PutMapping("/{id}/restore")
+    // @PreAuthorize("hasAuthority('ADMIN')")
+    // public ResponseEntity<ApiResponse<Void>> restoreUser(@PathVariable Integer id) {
+    //     boolean restored = userService.restoreUser(id);
+    //     if (restored) {
+    //         ApiResponse<Void> response = new ApiResponse<>(200, "success", "User restored successfully", null);
+    //         return ResponseEntity.ok(response);
+    //     }
+    //     ApiResponse<Void> response = new ApiResponse<>(404, "error", "User not found or not deleted", null);
+    //     return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    // }
 
-    // Upload user image
-    @PostMapping("/{userId}/upload-image")
+    @PostMapping("/{userId}/image")
+    @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('STUDENT')")
     public ResponseEntity<ApiResponse<UserDTO>> uploadImage(@PathVariable Integer userId,
                                                             @RequestParam("image") MultipartFile file) throws IOException {
         User updatedUser = userService.uploadUserImage(userId, file);
-        UserDTO dto = UserDTO.fromUser(updatedUser);
-        ApiResponse<UserDTO> response = new ApiResponse<>("success", "Image uploaded successfully", dto);
+        UserDTO dto = UserDTO.fromUserWithImage(updatedUser);
+        ApiResponse<UserDTO> response = new ApiResponse<>(200, "success", "Image uploaded successfully", dto);
         return ResponseEntity.ok(response);
     }
 
-    // Get user image as Base64
     @GetMapping("/{userId}/image")
+    @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('STUDENT')")
     public ResponseEntity<ApiResponse<String>> getImage(@PathVariable Integer userId) {
         try {
             String imageBase64 = userService.getUserImageBase64(userId);
-            ApiResponse<String> response = new ApiResponse<>("success", "Image fetched successfully", imageBase64);
+            ApiResponse<String> response = new ApiResponse<>(200, "success", "Image fetched successfully", imageBase64);
             return ResponseEntity.ok(response);
         } catch (RuntimeException ex) {
-            ApiResponse<String> response = new ApiResponse<>("error", ex.getMessage(), null);
+            ApiResponse<String> response = new ApiResponse<>(404, "error", ex.getMessage(), null);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
     }

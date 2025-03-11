@@ -1,4 +1,5 @@
 package com.example.Testlytics.Entity;
+
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -25,6 +26,7 @@ public class User {
     @ManyToOne
     @JoinColumn(name = "role_id", nullable = false)
     private Role role;
+
     @Lob
     @Column(columnDefinition = "BYTEA") // PostgreSQL uses BYTEA for storing binary data
     private byte[] image;
@@ -44,6 +46,4 @@ public class User {
     public void restore() {
         this.deletedOn = null; // Restore user
     }
-
 }
-
