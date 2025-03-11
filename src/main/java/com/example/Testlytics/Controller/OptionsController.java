@@ -42,6 +42,7 @@ public class OptionsController {
     }
 
     @GetMapping("/questions/{questionId}")
+    @PreAuthorize("hasAnyRole('ADMIN','STUDENT')")
     public ResponseEntity<ApiResponse<List<OptionsDTO>>> getOptionsByQuestionId(@PathVariable UUID questionId) {
         List<OptionsDTO> options = optionsService.getOptionsByQuestionId(questionId);
 
@@ -69,6 +70,7 @@ public class OptionsController {
     }
 
     @GetMapping("/{optionId}")
+    @PreAuthorize("hasAnyRole('ADMIN','STUDENT')")
     public ResponseEntity<ApiResponse<OptionsDTO>> getOptionById(@PathVariable UUID optionId) {
         OptionsDTO option = optionsService.getOptionById(optionId);
 

@@ -6,6 +6,7 @@ import com.example.Testlytics.Service.QuestionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -22,6 +23,7 @@ public class QuestionController {
 
     // ✅ Create a question for a specific test
     @PostMapping("/{testId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<QuestionDTO>> createQuestion(
             @PathVariable UUID testId,
             @RequestBody Map<String, String> requestBody) {
@@ -36,6 +38,7 @@ public class QuestionController {
 
     // ✅ Get all questions
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN','STUDENT')")
     public ResponseEntity<ApiResponse<List<QuestionDTO>>> getAllQuestions() {
         List<QuestionDTO> questions = questionService.getAllQuestions();
 
@@ -46,6 +49,7 @@ public class QuestionController {
 
     // ✅ Get a specific question by ID
     @GetMapping("/{questionId}")
+    @PreAuthorize("hasAnyRole('ADMIN','STUDENT')")
     public ResponseEntity<ApiResponse<QuestionDTO>> getQuestionById(@PathVariable UUID questionId) {
         QuestionDTO question = questionService.getQuestionById(questionId);
 
@@ -56,6 +60,7 @@ public class QuestionController {
 
     // ✅ Get all questions for a given test ID
     @GetMapping("/test/{testId}")
+    @PreAuthorize("hasAnyRole('ADMIN','STUDENT')")
     public ResponseEntity<ApiResponse<List<QuestionDTO>>> getQuestionsByTestId(@PathVariable UUID testId) {
         List<QuestionDTO> questions = questionService.getQuestionsByTestId(testId);
 
@@ -66,6 +71,7 @@ public class QuestionController {
 
     // ✅ Update a question for a specific test
     @PutMapping("/{testId}/{questionId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<QuestionDTO>> updateQuestion(
             @PathVariable UUID testId,
             @PathVariable UUID questionId,
@@ -83,6 +89,7 @@ public class QuestionController {
 
     // ✅ Delete a question for a specific test
     @DeleteMapping("/{testId}/{questionId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<String>> deleteQuestion(
             @PathVariable UUID testId,
             @PathVariable UUID questionId) {
@@ -96,6 +103,7 @@ public class QuestionController {
 
     // ✅ Upload Image for Question
     @PostMapping("/{questionId}/image")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<String>> uploadQuestionImage(
             @PathVariable UUID questionId,
             @RequestParam("image") MultipartFile imageFile) {
@@ -109,6 +117,7 @@ public class QuestionController {
 
     // ✅ Retrieve Image for a Question
     @GetMapping("/{questionId}/image")
+    @PreAuthorize("hasAnyRole('ADMIN','STUDENT')")
     public ResponseEntity<ApiResponse<byte[]>> getQuestionImage(@PathVariable UUID questionId) {
 
         byte[] imageData = questionService.getQuestionImage(questionId);
@@ -121,6 +130,7 @@ public class QuestionController {
     }
 
     @PutMapping("/{questionId}/image")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<String>> updateQuestionImage(
             @PathVariable UUID questionId,
             @RequestParam("image") MultipartFile imageFile) {
