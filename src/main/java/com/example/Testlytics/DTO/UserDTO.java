@@ -1,65 +1,36 @@
 package com.example.Testlytics.DTO;
 
 import com.example.Testlytics.Entity.User;
+import lombok.Getter;
+import lombok.Setter;
 import java.util.Base64;
 
+@Getter
+@Setter
 public class UserDTO {
     private Integer userId;
-    private String username;
+    private String name;
     private String email;
-    private String imageBase64; // Stores Base64 string when fetching a single user
+    private String image; // Store image as Base64 string
 
-    public UserDTO() {}
-
-    // Constructor without image (for listing all users)
-    public UserDTO(Integer userId, String username, String email) {
+    // ✅ Constructor
+    public UserDTO(Integer userId, String name, String email, String image) {
         this.userId = userId;
-        this.username = username;
+        this.name = name;
         this.email = email;
+        this.image = image;
     }
 
-    // Constructor with image (for fetching a single user)
-    public UserDTO(Integer userId, String username, String email, String imageBase64) {
-        this.userId = userId;
-        this.username = username;
-        this.email = email;
-        this.imageBase64 = imageBase64;
+    // ✅ No-args constructor (IMPORTANT for Jackson)
+    public UserDTO() {
     }
 
-    // Getters and Setters
-    public Integer getUserId() {
-        return userId;
-    }
-    public void setUserId(Integer userId) {
-        this.userId = userId;
-    }
-    public String getUsername() {
-        return username;
-    }
-    public void setUsername(String username) {
-        this.username = username;
-    }
-    public String getEmail() {
-        return email;
-    }
-    public void setEmail(String email) {
-        this.email = email;
-    }
-    public String getImageBase64() {
-        return imageBase64;
-    }
-    public void setImageBase64(String imageBase64) {
-        this.imageBase64 = imageBase64;
-    }
-
-    // Convert a User entity to UserDTO without image (for listing all users)
-    public static UserDTO fromUserWithoutImage(User user) {
-        return new UserDTO(user.getUserId(), user.getUsername(), user.getEmail());
-    }
-
-    // Convert a User entity to UserDTO with image (for fetching a single user)
-    public static UserDTO fromUserWithImage(User user) {
-        String imageBase64 = (user.getImage() != null) ? Base64.getEncoder().encodeToString(user.getImage()) : null;
-        return new UserDTO(user.getUserId(), user.getUsername(), user.getEmail(), imageBase64);
+    // ✅ **Factory Method to Convert `User` to `UserDTO`**
+    public static UserDTO fromUser(User user) {
+        String base64Image = null;
+        if (user.getImage() != null) {
+            base64Image = Base64.getEncoder().encodeToString(user.getImage());
+        }
+        return new UserDTO(user.getUserId(), user.getUsername(), user.getEmail(), base64Image);
     }
 }
