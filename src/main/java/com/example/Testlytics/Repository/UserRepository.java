@@ -6,14 +6,19 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Integer> {
+
+    // Update user image by ID
     @Modifying
-@Query("UPDATE User u SET u.image = :image WHERE u.id = :id")
-void updateUserImage(@Param("id") Long id, @Param("image") byte[] image);
+    @Transactional
+    @Query("UPDATE User u SET u.image = :image WHERE u.userId = :id")
+    void updateUserImage(@Param("id") Integer id, @Param("image") byte[] image);
 
     // Fetch all active (non-deleted) users
     @Query("SELECT u FROM User u WHERE u.deletedOn IS NULL")
@@ -30,5 +35,6 @@ void updateUserImage(@Param("id") Long id, @Param("image") byte[] image);
     // Find user by username (for authentication)
     Optional<User> findByUsername(String username);
 
+    // Find user by email (added from feature-swetha)
     Optional<User> findByEmail(String email);
 }

@@ -6,6 +6,8 @@ import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.security.Key;
 import java.util.Date;
@@ -14,6 +16,8 @@ import java.util.Map;
 
 @Component
 public class JwtTokenProvider {
+
+    private static final Logger logger = LoggerFactory.getLogger(JwtTokenProvider.class);
 
     @Value("${jwt.secret}")
     private String secretKey;
@@ -53,9 +57,12 @@ public class JwtTokenProvider {
         try {
             Jws<Claims> claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
             return !claims.getBody().getExpiration().before(new Date());
-        } catch (Exception e) {
-            return false;
+        } catch (ExpiredJwtException e) {
+            logger.warn("JWT Token is expired: {}", e.getMessage());
+        } catch (MalformedJwtException | UnsupportedJwtException | IllegalArgumentException e) {
+            logger.warn("Invalid JWT Token: {}", e.getMessage());
         }
+        return false;
     }
 
     // Extract email (username) from token

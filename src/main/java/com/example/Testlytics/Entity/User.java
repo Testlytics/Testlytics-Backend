@@ -1,4 +1,5 @@
 package com.example.Testlytics.Entity;
+
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -6,12 +7,14 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "users")
 public class User {
     @Id
-    private Integer userId; 
+    private Integer userId; // Unique 4-digit ID
 
-    @Column(nullable = false)
+    @Column(unique = true, nullable = false)
     private String username;
 
     @Column(unique = true, nullable = false)
@@ -23,6 +26,7 @@ public class User {
     @ManyToOne
     @JoinColumn(name = "role_id", nullable = false)
     private Role role;
+
     @Lob
     @Column(columnDefinition = "BYTEA") // PostgreSQL uses BYTEA for storing binary data
     private byte[] image;
@@ -30,18 +34,16 @@ public class User {
     private LocalDateTime createdOn = LocalDateTime.now();
     private LocalDateTime modifiedOn;
 
-    @Column(nullable = true) 
+    @Column(nullable = true) // Soft delete column
     private LocalDateTime deletedOn;
 
     // Soft delete method
     public void softDelete() {
-        this.deletedOn = LocalDateTime.now();
+        this.deletedOn = LocalDateTime.now(); // Mark as deleted
     }
 
     // Restore method (if needed)
-    // public void restore() {
-    //     this.deletedOn = null; 
-    // }
-
+    public void restore() {
+        this.deletedOn = null; // Restore user
+    }
 }
-

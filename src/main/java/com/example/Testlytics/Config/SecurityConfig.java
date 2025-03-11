@@ -36,7 +36,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/users/**", "/api/roles/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
-             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
         
         return http.build();
@@ -46,15 +46,14 @@ public class SecurityConfig {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
         return authConfig.getAuthenticationManager();
     }
-    
+
     @Bean
     public UserDetailsService userDetailsService() {
         return email -> userRepository.findByEmail(email)
             .map(user -> org.springframework.security.core.userdetails.User
                 .withUsername(user.getEmail())
                 .password(user.getPassword())
-                // Build authority with the "ROLE_" prefix:
-                .authorities("ROLE_" + user.getRole().getRoleName())
+                .authorities("ROLE_" + user.getRole().getRoleName()) // Ensure role is prefixed with "ROLE_"
                 .build())
             .orElseThrow(() -> new RuntimeException("User not found: " + email));
     }
