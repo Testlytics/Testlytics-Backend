@@ -1,6 +1,5 @@
 package com.example.Testlytics.Repository;
 
-import com.example.Testlytics.Entity.Question;
 import com.example.Testlytics.Entity.TestDetails;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

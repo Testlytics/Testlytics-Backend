@@ -5,106 +5,142 @@ import com.example.Testlytics.Entity.Question;
 import com.example.Testlytics.Entity.TestDetails;
 import com.example.Testlytics.Repository.QuestionRepository;
 import com.example.Testlytics.Repository.TestDetailsRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
+
 public class QuestionService {
 
     @Autowired
     private QuestionRepository questionRepository;
 
     @Autowired
-    private TestDetailsRepository testDetailsRepository; // Fetch test entity
+    private TestDetailsRepository testDetailsRepository;
 
-    // Create a new question
-    public QuestionDTO createQuestion(UUID testId, String questionText, MultipartFile image, UUID correctOptionId) {
-        // Fetch TestDetails entity
-        TestDetails test = testDetailsRepository.findById(testId)
-                .orElseThrow(() -> new RuntimeException("Test not found"));
+    // ✅ Create a new question
+    public QuestionDTO createQuestion(UUID testId, String questionText, String answer) {
+        TestDetails testDetails = testDetailsRepository.findById(testId)
+                .orElseThrow(() -> new RuntimeException("TestDetails not found for ID: " + testId));
 
-        // Create Question entity
         Question question = new Question();
-        question.setTest(test);
+        question.setTestDetails(testDetails);
         question.setQuestionText(questionText);
-        question.setCorrectOptionId(correctOptionId);
-
-        // Handle image if provided
-        if (image != null && !image.isEmpty()) {
-            try {
-                question.setImage(image.getBytes());
-            } catch (Exception e) {
-                throw new RuntimeException("Failed to upload image");
-            }
-        }
+        question.setAnswer(answer);
 
         Question savedQuestion = questionRepository.save(question);
+
         return new QuestionDTO(
                 savedQuestion.getQuestionId(),
-                savedQuestion.getTest().getTestId(), // Extract only testId
+                savedQuestion.getTestDetails().getTestId(),
                 savedQuestion.getQuestionText(),
-                savedQuestion.getImage(),
-                savedQuestion.getCorrectOptionId()
+                savedQuestion.getAnswer()
         );
     }
 
-    // Get all questions for a test
-    public List<QuestionDTO> getQuestionsByTestId(UUID testId) {
-        return questionRepository.findByTest_TestId(testId)
-                .stream()
+    // ✅ Get all questions
+    public List<QuestionDTO> getAllQuestions() {
+        List<Question> questions = questionRepository.findAll();
+        return questions.stream()
                 .map(q -> new QuestionDTO(
                         q.getQuestionId(),
-                        q.getTest().getTestId(), // Extract only testId
+                        q.getTestDetails().getTestId(),
                         q.getQuestionText(),
-                        q.getImage(),
-                        q.getCorrectOptionId()
-                ))
-                .toList();
+                        q.getAnswer()))
+                .collect(Collectors.toList());
     }
 
-    // Get a specific question by ID
-    public QuestionDTO getQuestionById(UUID testId, UUID questionId) {
-        Question question = questionRepository.findByTest_TestIdAndQuestionId(testId, questionId)
-                .orElseThrow(() -> new RuntimeException("Question not found"));
+    // ✅ Get a question by its ID
+    public QuestionDTO getQuestionById(UUID questionId) {
+        Question question = questionRepository.findById(questionId)
+                .orElseThrow(() -> new RuntimeException("Question not found for ID: " + questionId));
+
         return new QuestionDTO(
                 question.getQuestionId(),
-                question.getTest().getTestId(), // Extract only testId
+                question.getTestDetails().getTestId(),
                 question.getQuestionText(),
-                question.getImage(),
-                question.getCorrectOptionId()
+                question.getAnswer()
         );
     }
 
-    // Update a question
-    public QuestionDTO updateQuestion(UUID testId, UUID questionId, String updatedQuestionText, MultipartFile updatedImage, UUID updatedCorrectOptionId) {
-        Question existingQuestion = questionRepository.findByTest_TestIdAndQuestionId(testId, questionId)
-                .orElseThrow(() -> new RuntimeException("Question not found"));
-if(updatedImage != null && !updatedImage.isEmpty()) {
-            try {
-                existingQuestion.setImage(updatedImage.getBytes());
-            } catch (Exception e) {
-                throw new RuntimeException("Failed to upload new image");
+    public List<QuestionDTO> getQuestionsByTestId(UUID testId) {
+        try {
+            List<Question> questions = questionRepository.findByTestDetails_TestId(testId);
+
+            if (questions.isEmpty()) {
+                throw new RuntimeException("No questions found for test ID: " + testId);
             }
+
+            return questions.stream()
+                    .map(q -> new QuestionDTO(
+                            q.getQuestionId(),
+                            q.getTestDetails().getTestId(),
+                            q.getQuestionText(),
+                            q.getAnswer()))
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            throw new RuntimeException("Error fetching questions for test ID: " + testId, e);
+        }
+    }
+
+
+
+    // ✅ Update a question for a specific test
+    public QuestionDTO updateQuestion(UUID testId, UUID questionId, String questionText, String answer) {
+        // Validate if the test exists
+        TestDetails testDetails = testDetailsRepository.findById(testId)
+                .orElseThrow(() -> new RuntimeException("TestDetails not found for ID: " + testId));
+
+        // Find the question
+        Question question = questionRepository.findById(questionId)
+                .orElseThrow(() -> new RuntimeException("Question not found for ID: " + questionId));
+
+        // Ensure the question belongs to the given test
+        if (!question.getTestDetails().getTestId().equals(testId)) {
+            throw new RuntimeException("Question does not belong to the given test ID: " + testId);
         }
 
-        Question updatedQuestion = questionRepository.save(existingQuestion);
+        // Update question details
+        question.setQuestionText(questionText);
+        question.setAnswer(answer);
+        Question updatedQuestion = questionRepository.save(question);
+
         return new QuestionDTO(
                 updatedQuestion.getQuestionId(),
-                updatedQuestion.getTest().getTestId(), // Extract only testId
+                updatedQuestion.getTestDetails().getTestId(),
                 updatedQuestion.getQuestionText(),
-                updatedQuestion.getImage(),
-                updatedQuestion.getCorrectOptionId()
+                updatedQuestion.getAnswer()
         );
     }
 
-    // Delete a question
     public void deleteQuestion(UUID testId, UUID questionId) {
-        Question question = questionRepository.findByTest_TestIdAndQuestionId(testId, questionId)
-                .orElseThrow(() -> new RuntimeException("Question not found"));
+        // Validate if the test exists
+        TestDetails testDetails = testDetailsRepository.findById(testId)
+                .orElseThrow(() -> new RuntimeException("TestDetails not found for ID: " + testId));
+
+        // Find the question
+        Question question = questionRepository.findById(questionId)
+                .orElseThrow(() -> new RuntimeException("Question not found for ID: " + questionId));
+
+        // Ensure the question belongs to the given test
+        if (!question.getTestDetails().getTestId().equals(testId)) {
+            throw new RuntimeException("Question does not belong to the given test ID: " + testId);
+        }
+
+        // Delete the question
         questionRepository.delete(question);
     }
+
+
+
 }

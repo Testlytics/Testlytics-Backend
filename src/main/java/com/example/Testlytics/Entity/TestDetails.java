@@ -1,5 +1,6 @@
 package com.example.Testlytics.Entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -37,9 +38,11 @@ public class TestDetails {
     private int testDuration; // Duration in minutes
 
     @Column(name = "start_time", nullable = false)
+    @JsonFormat(pattern = "HH:mm:ss")
     private LocalTime startTime;
 
     @Column(name = "end_time", nullable = false)
+    @JsonFormat(pattern = "HH:mm:ss")
     private LocalTime endTime;
 
     @CreationTimestamp

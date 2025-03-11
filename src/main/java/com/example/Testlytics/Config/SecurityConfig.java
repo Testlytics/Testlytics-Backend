@@ -13,7 +13,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import com.example.Testlytics.Repository.UserRepository;
 
-
 @Configuration
 public class SecurityConfig {
 
@@ -47,8 +46,9 @@ public class SecurityConfig {
     // Expose AuthenticationManager to be used in your authentication endpoints (if needed)
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
-         return authConfig.getAuthenticationManager();
+        return authConfig.getAuthenticationManager();
     }
+
     @Bean
     public UserDetailsService userDetailsService(UserRepository userRepository) {
         return username -> userRepository.findByUsername(username)
@@ -59,6 +59,4 @@ public class SecurityConfig {
                         .build())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
     }
-    
-
 }
