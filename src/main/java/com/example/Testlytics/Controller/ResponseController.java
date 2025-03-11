@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/responses")
@@ -23,7 +24,7 @@ public class ResponseController {
 
     // Get responses by testId
     @GetMapping("/{testId}")
-    public List<ResponseDTO> getResponses(@PathVariable Long testId) {
+    public List<ResponseDTO> getResponses(@PathVariable UUID testId) {
         return responseService.getResponsesByTestId(testId);
     }
 }

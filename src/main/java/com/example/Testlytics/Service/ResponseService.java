@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,7 +35,7 @@ public class ResponseService {
     }
 
     // Get responses for a test
-    public List<ResponseDTO> getResponsesByTestId(Long testId) {
+    public List<ResponseDTO> getResponsesByTestId(UUID testId) {
         return responseRepository.findByTestTestId(testId)
                 .stream()
                 .map(this::convertToDTO)
