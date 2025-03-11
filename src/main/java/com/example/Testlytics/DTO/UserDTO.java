@@ -1,22 +1,29 @@
 package com.example.Testlytics.DTO;
 
 import com.example.Testlytics.Entity.User;
+import java.util.Base64;
 
 public class UserDTO {
     private Integer userId;
     private String username;
     private String email;
-    private String password; // Added password field
-    private byte[] image;
+    private String imageBase64; // Stores Base64 string when fetching a single user
 
     public UserDTO() {}
 
-    public UserDTO(Integer userId, String username, String email, String password, byte[] image) {
+    // Constructor without image (for listing all users)
+    public UserDTO(Integer userId, String username, String email) {
         this.userId = userId;
         this.username = username;
         this.email = email;
-        this.password = password;
-        this.image = image;
+    }
+
+    // Constructor with image (for fetching a single user)
+    public UserDTO(Integer userId, String username, String email, String imageBase64) {
+        this.userId = userId;
+        this.username = username;
+        this.email = email;
+        this.imageBase64 = imageBase64;
     }
 
     // Getters and Setters
@@ -38,27 +45,21 @@ public class UserDTO {
     public void setEmail(String email) {
         this.email = email;
     }
-    public String getPassword() {
-        return password;
+    public String getImageBase64() {
+        return imageBase64;
     }
-    public void setPassword(String password) {
-        this.password = password;
-    }
-    public byte[] getImage() {
-        return image;
-    }
-    public void setImage(byte[] image) {
-        this.image = image;
+    public void setImageBase64(String imageBase64) {
+        this.imageBase64 = imageBase64;
     }
 
-    // Convert a User entity to UserDTO
-    public static UserDTO fromUser(User user) {
-        return new UserDTO(
-                user.getUserId(),
-                user.getUsername(),
-                user.getEmail(),
-                user.getPassword(), // Include password
-                user.getImage()
-        );
+    // Convert a User entity to UserDTO without image (for listing all users)
+    public static UserDTO fromUserWithoutImage(User user) {
+        return new UserDTO(user.getUserId(), user.getUsername(), user.getEmail());
+    }
+
+    // Convert a User entity to UserDTO with image (for fetching a single user)
+    public static UserDTO fromUserWithImage(User user) {
+        String imageBase64 = (user.getImage() != null) ? Base64.getEncoder().encodeToString(user.getImage()) : null;
+        return new UserDTO(user.getUserId(), user.getUsername(), user.getEmail(), imageBase64);
     }
 }

@@ -37,7 +37,6 @@ public class JwtTokenProvider {
         Date validity = new Date(now.getTime() + validityInMilliseconds);
 
         Map<String, Object> claims = new HashMap<>();
-        // You can also store authorities in a claim if needed:
         claims.put("authorities", java.util.Collections.singletonList("ROLE_" + roleName));
 
         return Jwts.builder()

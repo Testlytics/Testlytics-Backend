@@ -6,14 +6,12 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
 @Table(name = "users")
 public class User {
     @Id
-    private Integer userId; // Unique 4-digit ID
+    private Integer userId; 
 
-    @Column(unique = true, nullable = false)
+    @Column(nullable = false)
     private String username;
 
     @Column(unique = true, nullable = false)
@@ -32,18 +30,18 @@ public class User {
     private LocalDateTime createdOn = LocalDateTime.now();
     private LocalDateTime modifiedOn;
 
-    @Column(nullable = true) // Soft delete column
+    @Column(nullable = true) 
     private LocalDateTime deletedOn;
 
     // Soft delete method
     public void softDelete() {
-        this.deletedOn = LocalDateTime.now(); // Mark as deleted
+        this.deletedOn = LocalDateTime.now();
     }
 
     // Restore method (if needed)
-    public void restore() {
-        this.deletedOn = null; // Restore user
-    }
+    // public void restore() {
+    //     this.deletedOn = null; 
+    // }
 
 }
 

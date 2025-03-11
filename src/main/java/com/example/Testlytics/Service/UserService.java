@@ -54,6 +54,7 @@ public class UserService {
     }
 
     // Get all active users (filtered by role if provided)
+    @Transactional
     public List<User> getAllActiveUsers(String role) {
         if (role != null) {
             return userRepository.findAllActiveUsersByRole(role);
@@ -62,6 +63,7 @@ public class UserService {
     }
 
     // Get user by ID (Only active users)
+    @Transactional 
     public Optional<User> getUserById(Integer userId) {
         return userRepository.findByIdIfNotDeleted(userId);
     }
@@ -110,16 +112,16 @@ public class UserService {
     }
 
     // Restore user
-    public boolean restoreUser(Integer userId) {
-        Optional<User> userOptional = userRepository.findById(userId);
-        if (userOptional.isPresent() && userOptional.get().getDeletedOn() != null) {
-            User user = userOptional.get();
-            user.restore();
-            userRepository.save(user);
-            return true;
-        }
-        return false;
-    }
+    // public boolean restoreUser(Integer userId) {
+    //     Optional<User> userOptional = userRepository.findById(userId);
+    //     if (userOptional.isPresent() && userOptional.get().getDeletedOn() != null) {
+    //         User user = userOptional.get();
+    //         user.restore();
+    //         userRepository.save(user);
+    //         return true;
+    //     }
+    //     return false;
+    // }
 
     // Upload User Image (must be transactional for LOB access)
     @Transactional
