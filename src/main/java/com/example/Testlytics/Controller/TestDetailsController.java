@@ -52,11 +52,11 @@ public class TestDetailsController {
         return ResponseEntity.ok(new ApiResponse<>(200, "OK", "Test updated successfully", updatedTest));
     }
 
-    // ✅ DELETE TEST
-    @DeleteMapping("/{testdetailsId}")
+    // ✅ DELETE test (Soft Delete)
+    @DeleteMapping("/{testId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<Void>> deleteTest(@PathVariable UUID testdetailsId) {
-        testDetailsService.deleteTest(testdetailsId);
-        return ResponseEntity.ok(new ApiResponse<>(200, "OK", "Test deleted successfully", null));
+    public ResponseEntity<ApiResponse<Void>> deleteTest(@PathVariable UUID testId) {
+        testDetailsService.deleteTest(testId);
+        return ResponseEntity.ok(new ApiResponse<>(200, "Success", "Test deleted successfully", null));
     }
 }

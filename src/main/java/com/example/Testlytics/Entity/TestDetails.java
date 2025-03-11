@@ -193,6 +193,10 @@ public class TestDetails {
         }
     }
 
+    // ✅ Method to check if a test is deleted (Soft Delete)
+    public boolean isDeleted() {
+        return deletedOn != null;
+    }
 
 
 }

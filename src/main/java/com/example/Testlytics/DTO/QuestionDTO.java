@@ -2,6 +2,7 @@ package com.example.Testlytics.DTO;
 
 import lombok.*;
 
+import java.util.Base64;
 import java.util.UUID;
 
 @Getter
@@ -13,7 +14,7 @@ public class QuestionDTO {
     private UUID testId;
     private String questionText;
     private String answer;
-    private byte[] image;
+    private String image;
 
     // Constructor without image
     public QuestionDTO(UUID questionId, UUID testId, String questionText, String answer) {
@@ -21,6 +22,15 @@ public class QuestionDTO {
         this.testId = testId;
         this.questionText = questionText;
         this.answer = answer;
+    }
+
+    // Constructor with byte[] image (to Base64 conversion)
+    public QuestionDTO(UUID questionId, UUID testId, String questionText, String answer, byte[] imageBytes) {
+        this.questionId = questionId;
+        this.testId = testId;
+        this.questionText = questionText;
+        this.answer = answer;
+        this.image = (imageBytes != null) ? Base64.getEncoder().encodeToString(imageBytes) : null;
     }
 
     public UUID getQuestionId() {
@@ -55,11 +65,11 @@ public class QuestionDTO {
         this.answer = answer;
     }
 
-    public byte[] getImage() {
+    public String getImage() {
         return image;
     }
 
-    public void setImage(byte[] image) {
+    public void setImage(String image) {
         this.image = image;
     }
 }

@@ -8,13 +8,16 @@ import com.example.Testlytics.Repository.TestDetailsRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -38,6 +41,7 @@ public class QuestionService {
         question.setQuestionText(questionText);
         question.setAnswer(answer);
 
+
         Question savedQuestion = questionRepository.save(question);
 
         return new QuestionDTO(
@@ -50,13 +54,14 @@ public class QuestionService {
 
     // ✅ Get all questions
     public List<QuestionDTO> getAllQuestions() {
-        List<Question> questions = questionRepository.findAll();
+        List<Question> questions = questionRepository.findAllWithImages();
         return questions.stream()
                 .map(q -> new QuestionDTO(
                         q.getQuestionId(),
                         q.getTestDetails().getTestId(),
                         q.getQuestionText(),
-                        q.getAnswer()))
+                        q.getAnswer(),
+                        q.getImage()))
                 .collect(Collectors.toList());
     }
 
@@ -69,7 +74,8 @@ public class QuestionService {
                 question.getQuestionId(),
                 question.getTestDetails().getTestId(),
                 question.getQuestionText(),
-                question.getAnswer()
+                question.getAnswer(),
+                question.getImage()
         );
     }
 
@@ -86,7 +92,8 @@ public class QuestionService {
                             q.getQuestionId(),
                             q.getTestDetails().getTestId(),
                             q.getQuestionText(),
-                            q.getAnswer()))
+                            q.getAnswer(),
+                            q.getImage()))
                     .collect(Collectors.toList());
         } catch (Exception e) {
             throw new RuntimeException("Error fetching questions for test ID: " + testId, e);
@@ -119,7 +126,8 @@ public class QuestionService {
                 updatedQuestion.getQuestionId(),
                 updatedQuestion.getTestDetails().getTestId(),
                 updatedQuestion.getQuestionText(),
-                updatedQuestion.getAnswer()
+                updatedQuestion.getAnswer(),
+                updatedQuestion.getImage()
         );
     }
 
@@ -139,6 +147,51 @@ public class QuestionService {
 
         // Delete the question
         questionRepository.delete(question);
+    }
+
+    public String uploadQuestionImage(UUID questionId, MultipartFile imageFile) {
+        // Validate if question exists
+        Question question = questionRepository.findById(questionId)
+                .orElseThrow(() -> new RuntimeException("Question not found"));
+
+        try {
+            // Convert file to byte array
+            byte[] imageBytes = imageFile.getBytes();
+            question.setImage(imageBytes);
+
+            // Save to database
+            questionRepository.save(question);
+            return "Image uploaded successfully for question ID: " + questionId;
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to store image", e);
+        }
+    }public byte[] getQuestionImage(UUID questionId) {
+        Question question = questionRepository.findById(questionId)
+                .orElseThrow(() -> new RuntimeException("Question not found"));
+
+        byte[] image = question.getImage();
+        if (image == null || image.length == 0) {
+            throw new RuntimeException("No image found for this question");
+        }
+
+        return image;
+    }
+
+    public String updateQuestionImage(UUID questionId, MultipartFile imageFile) {
+        Optional<Question> optionalQuestion = questionRepository.findByIdWithImage(questionId);
+
+        if (optionalQuestion.isEmpty()) {
+            return "Question not found, unable to update image.";
+        }
+
+        Question question = optionalQuestion.get();
+        try {
+            question.setImage(imageFile.getBytes());  // Convert MultipartFile to byte[]
+            questionRepository.save(question);
+            return "Image updated successfully";
+        } catch (IOException e) {
+            return "Error updating image: " + e.getMessage();
+        }
     }
 
 

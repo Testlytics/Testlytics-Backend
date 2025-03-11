@@ -6,7 +6,9 @@ import com.example.Testlytics.Repository.TestDetailsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -52,9 +54,16 @@ public class TestDetailsService {
         return convertToDTO(updatedTest);
     }
 
-    // ✅ Delete test
+    // ✅ Soft Delete - Just set deletedOn timestamp
     public void deleteTest(UUID testId) {
-        testDetailsRepository.deleteById(testId);
+        Optional<TestDetails> testDetailsOptional = testDetailsRepository.findActiveTestById(testId);
+        if (testDetailsOptional.isPresent()) {
+            TestDetails test = testDetailsOptional.get();
+            test.setDeletedOn(LocalDateTime.now()); // Set soft delete timestamp
+            testDetailsRepository.save(test);
+        } else {
+            throw new RuntimeException("Test not found or already deleted.");
+        }
     }
 
     // ✅ Conversion Methods

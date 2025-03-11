@@ -92,4 +92,52 @@ public class QuestionController {
                 200, "Success", "Question deleted successfully.", null);
         return ResponseEntity.ok(response);
     }
+
+
+    // ✅ Upload Image for Question
+    @PostMapping("/{questionId}/image")
+    public ResponseEntity<ApiResponse<String>> uploadQuestionImage(
+            @PathVariable UUID questionId,
+            @RequestParam("image") MultipartFile imageFile) {
+
+        String responseMessage = questionService.uploadQuestionImage(questionId, imageFile);
+        ApiResponse<String> response = new ApiResponse<>(
+                200, "Success", "Image uploaded successfully", responseMessage);
+
+        return ResponseEntity.ok(response);
+    }
+
+    // ✅ Retrieve Image for a Question
+    @GetMapping("/{questionId}/image")
+    public ResponseEntity<ApiResponse<byte[]>> getQuestionImage(@PathVariable UUID questionId) {
+
+        byte[] imageData = questionService.getQuestionImage(questionId);
+        ApiResponse<byte[]> response = new ApiResponse<>(
+                200, "Success", "Image retrieved successfully", imageData);
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_JSON) // Keeping JSON format for structured API response
+                .body(response);
+    }
+
+    @PutMapping("/{questionId}/image")
+    public ResponseEntity<ApiResponse<String>> updateQuestionImage(
+            @PathVariable UUID questionId,
+            @RequestParam("image") MultipartFile imageFile) {
+
+        String result = questionService.updateQuestionImage(questionId, imageFile);
+
+        if (result.equals("Question not found, unable to update image.")) {
+            ApiResponse<String> response = new ApiResponse<>(404, "Failure", result, null);
+            return ResponseEntity.status(404).body(response);
+        } else if (result.startsWith("Error updating image")) {
+            ApiResponse<String> response = new ApiResponse<>(500, "Failure", result, null);
+            return ResponseEntity.status(500).body(response);
+        }
+
+        ApiResponse<String> response = new ApiResponse<>(200, "Success", result, result);
+        return ResponseEntity.ok(response);
+    }
+
+
 }
