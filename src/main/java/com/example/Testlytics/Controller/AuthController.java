@@ -38,7 +38,7 @@ public ResponseEntity<?> login(@RequestBody Map<String, String> credentials) {
     String password = credentials.get("password");
 
     try {
-        // Authenticate user
+       
         Authentication authentication = authenticationManager.authenticate(
             new UsernamePasswordAuthenticationToken(email, password)
         );

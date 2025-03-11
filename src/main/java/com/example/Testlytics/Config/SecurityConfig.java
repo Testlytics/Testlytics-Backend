@@ -32,8 +32,7 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/login", "/api/auth/register").permitAll()  // Public endpoints
-                // Other endpoints require proper role(s):
+                .requestMatchers("/api/auth/login").permitAll()
                 .requestMatchers("/api/users/**", "/api/roles/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
@@ -47,15 +46,14 @@ public class SecurityConfig {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
         return authConfig.getAuthenticationManager();
     }
-    
+
     @Bean
     public UserDetailsService userDetailsService() {
         return email -> userRepository.findByEmail(email)
             .map(user -> org.springframework.security.core.userdetails.User
                 .withUsername(user.getEmail())
                 .password(user.getPassword())
-                // Build authority with the "ROLE_" prefix:
-                .authorities("ROLE_" + user.getRole().getRoleName())
+                .authorities("ROLE_" + user.getRole().getRoleName()) // Ensure role is prefixed with "ROLE_"
                 .build())
             .orElseThrow(() -> new RuntimeException("User not found: " + email));
     }

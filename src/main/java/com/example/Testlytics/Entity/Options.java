@@ -1,5 +1,6 @@
 package com.example.Testlytics.Entity;
 
+import com.example.Testlytics.DTO.OptionsDTO;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -28,6 +29,8 @@ public class Options {
 
     @Column(name = "is_correct", nullable = false)
     private boolean isCorrect;
+
+
 
     public UUID getOptionId() {
         return optionId;
@@ -60,5 +63,7 @@ public class Options {
     public void setCorrect(boolean correct) {  // Setter should be "setCorrect"
         this.isCorrect = correct;
     }
+
+
 }
 
