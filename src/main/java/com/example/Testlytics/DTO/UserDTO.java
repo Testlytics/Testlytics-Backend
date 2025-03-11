@@ -6,14 +6,16 @@ public class UserDTO {
     private Integer userId;
     private String username;
     private String email;
+    private String password; // Added password field
     private byte[] image;
 
     public UserDTO() {}
 
-    public UserDTO(Integer userId, String username, String email, byte[] image) {
+    public UserDTO(Integer userId, String username, String email, String password, byte[] image) {
         this.userId = userId;
         this.username = username;
         this.email = email;
+        this.password = password;
         this.image = image;
     }
 
@@ -36,6 +38,12 @@ public class UserDTO {
     public void setEmail(String email) {
         this.email = email;
     }
+    public String getPassword() {
+        return password;
+    }
+    public void setPassword(String password) {
+        this.password = password;
+    }
     public byte[] getImage() {
         return image;
     }
@@ -49,6 +57,7 @@ public class UserDTO {
                 user.getUserId(),
                 user.getUsername(),
                 user.getEmail(),
+                user.getPassword(), // Include password
                 user.getImage()
         );
     }
