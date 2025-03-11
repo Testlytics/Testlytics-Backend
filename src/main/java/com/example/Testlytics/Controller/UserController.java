@@ -24,20 +24,21 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+    
     @Autowired
     private RoleService roleService;
 
     // Admin-only: Get all users
     @PreAuthorize("hasRole('ADMIN')")
-@GetMapping
-public ResponseEntity<ApiResponse<List<UserDTO>>> getAllUsers(@RequestParam(required = false) String role) {
-    List<User> users = userService.getAllActiveUsers(role);
-    List<UserDTO> userDTOs = users.stream()
-            .map(UserDTO::fromUserWithoutImage) // Exclude image
-            .collect(Collectors.toList());
-    ApiResponse<List<UserDTO>> response = new ApiResponse<>("success", "Users fetched successfully", userDTOs);
-    return ResponseEntity.ok(response);
-}
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<UserDTO>>> getAllUsers(@RequestParam(required = false) String role) {
+        List<User> users = userService.getAllActiveUsers(role);
+        List<UserDTO> userDTOs = users.stream()
+                .map(UserDTO::fromUserWithoutImage)
+                .collect(Collectors.toList());
+        ApiResponse<List<UserDTO>> response = new ApiResponse<>(200, "success", "Users fetched successfully", userDTOs);
+        return ResponseEntity.ok(response);
+    }
 
     // Admin-only: Get a user by ID
     @PreAuthorize("hasRole('ADMIN')")
@@ -46,10 +47,10 @@ public ResponseEntity<ApiResponse<List<UserDTO>>> getAllUsers(@RequestParam(requ
         Optional<User> userOptional = userService.getUserById(id);
         if (userOptional.isPresent()) {
             UserDTO dto = UserDTO.fromUserWithImage(userOptional.get());
-            ApiResponse<UserDTO> response = new ApiResponse<>("success", "User fetched successfully", dto);
+            ApiResponse<UserDTO> response = new ApiResponse<>(200, "success", "User fetched successfully", dto);
             return ResponseEntity.ok(response);
         } else {
-            ApiResponse<UserDTO> response = new ApiResponse<>("error", "User not found", null);
+            ApiResponse<UserDTO> response = new ApiResponse<>(404, "error", "User not found", null);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
     }
@@ -60,18 +61,18 @@ public ResponseEntity<ApiResponse<List<UserDTO>>> getAllUsers(@RequestParam(requ
     public ResponseEntity<ApiResponse<UserDTO>> createUser(@RequestBody User user) {
         if (user.getRole() == null || user.getRole().getId() == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new ApiResponse<>("error", "Role ID is required", null));
+                    .body(new ApiResponse<>(400, "error", "Role ID is required", null));
         }
         Optional<Role> roleOptional = roleService.getRoleById(user.getRole().getId());
         if (roleOptional.isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new ApiResponse<>("error", "Invalid role ID", null));
+                    .body(new ApiResponse<>(400, "error", "Invalid role ID", null));
         }
         user.setRole(roleOptional.get());
         User createdUser = userService.saveUser(user);
         UserDTO dto = UserDTO.fromUserWithoutImage(createdUser);
-        ApiResponse<UserDTO> response = new ApiResponse<>("success", "User created successfully", dto);
-        return ResponseEntity.ok(response);
+        ApiResponse<UserDTO> response = new ApiResponse<>(201, "success", "User created successfully", dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     // Accessible by Admin and Student: Update user details
@@ -80,21 +81,21 @@ public ResponseEntity<ApiResponse<List<UserDTO>>> getAllUsers(@RequestParam(requ
     public ResponseEntity<ApiResponse<UserDTO>> updateUser(@PathVariable Integer id, @RequestBody User user) {
         if (user.getRole() == null || user.getRole().getId() == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new ApiResponse<>("error", "Role ID is required", null));
+                    .body(new ApiResponse<>(400, "error", "Role ID is required", null));
         }
         Optional<Role> roleOptional = roleService.getRoleById(user.getRole().getId());
         if (roleOptional.isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new ApiResponse<>("error", "Invalid role ID", null));
+                    .body(new ApiResponse<>(400, "error", "Invalid role ID", null));
         }
         user.setRole(roleOptional.get());
         try {
             User updatedUser = userService.updateUser(id, user);
             UserDTO dto = UserDTO.fromUserWithoutImage(updatedUser);
-            return ResponseEntity.ok(new ApiResponse<>("success", "User updated successfully", dto));
+            return ResponseEntity.ok(new ApiResponse<>(200, "success", "User updated successfully", dto));
         } catch (RuntimeException ex) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ApiResponse<>("error", ex.getMessage(), null));
+                    .body(new ApiResponse<>(404, "error", ex.getMessage(), null));
         }
     }
 
@@ -104,25 +105,12 @@ public ResponseEntity<ApiResponse<List<UserDTO>>> getAllUsers(@RequestParam(requ
     public ResponseEntity<ApiResponse<Void>> softDeleteUser(@PathVariable Integer id) {
         boolean deleted = userService.softDeleteUser(id);
         if (deleted) {
-            ApiResponse<Void> response = new ApiResponse<>("success", "User soft deleted successfully", null);
+            ApiResponse<Void> response = new ApiResponse<>(200, "success", "User soft deleted successfully", null);
             return ResponseEntity.ok(response);
         }
-        ApiResponse<Void> response = new ApiResponse<>("error", "User not found", null);
+        ApiResponse<Void> response = new ApiResponse<>(404, "error", "User not found", null);
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
-
-    // Admin-only: Restore a soft-deleted user
-    // @PreAuthorize("hasRole('ADMIN')")
-    // @PutMapping("/{id}/restore")
-    // public ResponseEntity<ApiResponse<Void>> restoreUser(@PathVariable Integer id) {
-    //     boolean restored = userService.restoreUser(id);
-    //     if (restored) {
-    //         ApiResponse<Void> response = new ApiResponse<>("success", "User restored successfully", null);
-    //         return ResponseEntity.ok(response);
-    //     }
-    //     ApiResponse<Void> response = new ApiResponse<>("error", "User not found or not deleted", null);
-    //     return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-    // }
 
     // Accessible by Admin and Student: Upload user image
     @PreAuthorize("hasAnyRole('ADMIN','STUDENT')")
@@ -131,7 +119,7 @@ public ResponseEntity<ApiResponse<List<UserDTO>>> getAllUsers(@RequestParam(requ
                                                             @RequestParam("image") MultipartFile file) throws IOException {
         User updatedUser = userService.uploadUserImage(userId, file);
         UserDTO dto = UserDTO.fromUserWithImage(updatedUser);
-        ApiResponse<UserDTO> response = new ApiResponse<>("success", "Image uploaded successfully", dto);
+        ApiResponse<UserDTO> response = new ApiResponse<>(200, "success", "Image uploaded successfully", dto);
         return ResponseEntity.ok(response);
     }
 
@@ -141,10 +129,10 @@ public ResponseEntity<ApiResponse<List<UserDTO>>> getAllUsers(@RequestParam(requ
     public ResponseEntity<ApiResponse<String>> getImage(@PathVariable Integer userId) {
         try {
             String imageBase64 = userService.getUserImageBase64(userId);
-            ApiResponse<String> response = new ApiResponse<>("success", "Image fetched successfully", imageBase64);
+            ApiResponse<String> response = new ApiResponse<>(200, "success", "Image fetched successfully", imageBase64);
             return ResponseEntity.ok(response);
         } catch (RuntimeException ex) {
-            ApiResponse<String> response = new ApiResponse<>("error", ex.getMessage(), null);
+            ApiResponse<String> response = new ApiResponse<>(404, "error", ex.getMessage(), null);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
     }
@@ -156,7 +144,7 @@ public ResponseEntity<ApiResponse<List<UserDTO>>> getAllUsers(@RequestParam(requ
                                                             @RequestParam("image") MultipartFile file) throws IOException {
         User updatedUser = userService.uploadUserImage(userId, file);
         UserDTO dto = UserDTO.fromUserWithImage(updatedUser);
-        ApiResponse<UserDTO> response = new ApiResponse<>("success", "Image updated successfully", dto);
+        ApiResponse<UserDTO> response = new ApiResponse<>(200, "success", "Image updated successfully", dto);
         return ResponseEntity.ok(response);
     }
 }
