@@ -1,50 +1,54 @@
 package com.example.Testlytics.Controller;
 
-import com.example.Testlytics.DTO.TestAttemptDTO;
+import com.example.Testlytics.DTO.ApiResponse;
+import com.example.Testlytics.DTO.TestAttemptDTO.TestAttemptStartRequest;
+import com.example.Testlytics.DTO.TestAttemptDTO.TestAttemptSubmitRequest;
 import com.example.Testlytics.Service.TestAttemptService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/test-attempts")
 public class TestAttemptController {
 
-    @Autowired
-    private TestAttemptService testAttemptService;
+    private final TestAttemptService service;
 
+    public TestAttemptController(TestAttemptService service) {
+        this.service = service;
+    }
+
+    /**
+     * Start a test attempt.
+     */
     @PostMapping
-    public ResponseEntity<TestAttemptDTO> createTestAttempt(@RequestBody TestAttemptDTO dto) {
-        TestAttemptDTO createdAttempt = testAttemptService.createTestAttempt(dto);
-        return ResponseEntity.ok(createdAttempt);
+    public ResponseEntity<ApiResponse<?>> startTestAttempt(@RequestBody TestAttemptStartRequest request) {
+        System.out.println("Received testId: " + request.getTestId());
+        System.out.println("Received userId: " + request.getUserId());
+
+        ApiResponse<?> response = service.startTestAttempt(request.getTestId(), request.getUserId());
+        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<TestAttemptDTO> getTestAttemptById(@PathVariable Long id) {
-        TestAttemptDTO attempt = testAttemptService.getTestAttemptById(id);
-        return (attempt != null) ? ResponseEntity.ok(attempt) : ResponseEntity.notFound().build();
-    }
+    /**
+     * Submit a test attempt.
+     */
+    @PutMapping("/{testId}/{userId}")
+    public ResponseEntity<ApiResponse<?>> submitTestAttempt(
+            @PathVariable UUID testId,
+            @PathVariable Integer userId,
+            @RequestBody TestAttemptSubmitRequest request) {
 
-    @GetMapping
-    public ResponseEntity<List<TestAttemptDTO>> getAllTestAttempts() {
-        return ResponseEntity.ok(testAttemptService.getAllTestAttempts());
+        ApiResponse<?> response = service.submitTestAttempt(testId, userId, request);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
-
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<List<TestAttemptDTO>> getTestAttemptsByUserId(@PathVariable Long userId) {
-        return ResponseEntity.ok(testAttemptService.getTestAttemptsByUserId(userId));
-    }
-
-    @GetMapping("/test/{testId}")
-    public ResponseEntity<List<TestAttemptDTO>> getTestAttemptsByTestId(@PathVariable Long testId) {
-        return ResponseEntity.ok(testAttemptService.getTestAttemptsByTestId(testId));
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteTestAttempt(@PathVariable Long id) {
-        testAttemptService.deleteTestAttempt(id);
-        return ResponseEntity.noContent().build();
-    }
+    @GetMapping("/{testId}/{userId}")
+public ResponseEntity<ApiResponse<?>> getTestAttempt(
+        @PathVariable UUID testId,
+        @PathVariable Integer userId) {
+ 
+    ApiResponse<?> response = service.getTestAttempt(testId, userId);
+    return ResponseEntity.status(response.getStatusCode()).body(response);
+}
 }

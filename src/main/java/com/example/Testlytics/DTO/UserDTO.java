@@ -1,55 +1,36 @@
 package com.example.Testlytics.DTO;
 
 import com.example.Testlytics.Entity.User;
+import lombok.Getter;
+import lombok.Setter;
+import java.util.Base64;
 
+@Getter
+@Setter
 public class UserDTO {
     private Integer userId;
-    private String username;
+    private String name;
     private String email;
-    private byte[] image;
+    private String image; // Store image as Base64 string
 
-    public UserDTO() {}
-
-    public UserDTO(Integer userId, String username, String email, byte[] image) {
+    // ✅ Constructor
+    public UserDTO(Integer userId, String name, String email, String image) {
         this.userId = userId;
-        this.username = username;
+        this.name = name;
         this.email = email;
         this.image = image;
     }
 
-    // Getters and Setters
-    public Integer getUserId() {
-        return userId;
-    }
-    public void setUserId(Integer userId) {
-        this.userId = userId;
-    }
-    public String getUsername() {
-        return username;
-    }
-    public void setUsername(String username) {
-        this.username = username;
-    }
-    public String getEmail() {
-        return email;
-    }
-    public void setEmail(String email) {
-        this.email = email;
-    }
-    public byte[] getImage() {
-        return image;
-    }
-    public void setImage(byte[] image) {
-        this.image = image;
+    // ✅ No-args constructor (IMPORTANT for Jackson)
+    public UserDTO() {
     }
 
-    // Convert a User entity to UserDTO
+    // ✅ **Factory Method to Convert `User` to `UserDTO`**
     public static UserDTO fromUser(User user) {
-        return new UserDTO(
-                user.getUserId(),
-                user.getUsername(),
-                user.getEmail(),
-                user.getImage()
-        );
+        String base64Image = null;
+        if (user.getImage() != null) {
+            base64Image = Base64.getEncoder().encodeToString(user.getImage());
+        }
+        return new UserDTO(user.getUserId(), user.getUsername(), user.getEmail(), base64Image);
     }
 }

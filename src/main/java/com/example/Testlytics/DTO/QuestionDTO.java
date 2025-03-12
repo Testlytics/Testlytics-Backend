@@ -2,18 +2,36 @@ package com.example.Testlytics.DTO;
 
 import lombok.*;
 
+import java.util.Base64;
 import java.util.UUID;
 
 @Getter
 @Setter
 @NoArgsConstructor
-@Builder
+@AllArgsConstructor
 public class QuestionDTO {
     private UUID questionId;
-    private UUID testId; // Only store testId, not the entire TestDetails entity
+    private UUID testId;
     private String questionText;
-    private byte[] image;
-    private UUID correctOptionId;
+    private String answer;
+    private String image;
+
+    // Constructor without image
+    public QuestionDTO(UUID questionId, UUID testId, String questionText, String answer) {
+        this.questionId = questionId;
+        this.testId = testId;
+        this.questionText = questionText;
+        this.answer = answer;
+    }
+
+    // Constructor with byte[] image (to Base64 conversion)
+    public QuestionDTO(UUID questionId, UUID testId, String questionText, String answer, byte[] imageBytes) {
+        this.questionId = questionId;
+        this.testId = testId;
+        this.questionText = questionText;
+        this.answer = answer;
+        this.image = (imageBytes != null) ? Base64.getEncoder().encodeToString(imageBytes) : null;
+    }
 
     public UUID getQuestionId() {
         return questionId;
@@ -39,30 +57,19 @@ public class QuestionDTO {
         this.questionText = questionText;
     }
 
-    public byte[] getImage() {
+    public String getAnswer() {
+        return answer;
+    }
+
+    public void setAnswer(String answer) {
+        this.answer = answer;
+    }
+
+    public String getImage() {
         return image;
     }
 
-    public void setImage(byte[] image) {
+    public void setImage(String image) {
         this.image = image;
     }
-
-    public UUID getCorrectOptionId() {
-        return correctOptionId;
-    }
-
-    public void setCorrectOptionId(UUID correctOptionId) {
-        this.correctOptionId = correctOptionId;
-    }
-
-    public QuestionDTO(UUID questionId, UUID testId, String questionText, byte[] image, UUID correctOptionId) {
-        this.questionId = questionId;
-        this.testId = testId;
-        this.questionText = questionText;
-        this.image = image;
-        this.correctOptionId = correctOptionId;
-    }
-
-
-
 }

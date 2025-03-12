@@ -1,126 +1,100 @@
 package com.example.Testlytics.Service;
 
-import com.example.Testlytics.Entity.Role;
+import com.example.Testlytics.DTO.UserDTO;
 import com.example.Testlytics.Entity.User;
 import com.example.Testlytics.Repository.UserRepository;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
-import org.springframework.web.multipart.MultipartFile;
-import java.io.IOException;
-import java.util.Base64;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
 
     private final UserRepository userRepository;
-    private final RoleService roleService; // Inject RoleService
+    private final RoleService roleService;
+    private final BCryptPasswordEncoder passwordEncoder;
     private final Random random = new Random();
 
-    public UserService(UserRepository userRepository, RoleService roleService) {
+    public UserService(UserRepository userRepository, RoleService roleService, BCryptPasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.roleService = roleService;
+        this.passwordEncoder = passwordEncoder;
     }
 
-    // Generate a unique 4-digit user ID
+    /**
+     * Generates a unique 4-digit user ID.
+     */
     private Integer generateUniqueUserId() {
         int userId;
         do {
-            userId = 1000 + random.nextInt(9000); // Generate between 1000-9999
-        } while (userRepository.existsById(userId)); // Ensure uniqueness
+            userId = 1000 + random.nextInt(9000);
+        } while (userRepository.existsById(userId));
         return userId;
     }
 
-    // Save a new user with role integration
-    public User saveUser(User user, String roleName) {
-        user.setUserId(generateUniqueUserId()); // Assign unique 4-digit ID
-        
-        // Fetch role from RoleService
-        Optional<Role> roleOptional = roleService.getRoleByName(roleName);
-        if (roleOptional.isEmpty()) {
-            throw new RuntimeException("Role not found: " + roleName);
+    /**
+     * Create a new user (with optional image).
+     */
+    public User saveUser(User user) {
+        if (user.getUserId() == null) {
+            user.setUserId(generateUniqueUserId());
         }
-        
-        user.setRole(roleOptional.get()); // Assign the role
+        // Encrypt password before saving
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepository.save(user);
     }
 
-    // Get all active (non-deleted) users
-public List<User> getAllActiveUsers(String role) {
-    if (role != null) {
-        return userRepository.findAllActiveUsersByRole(role);
+    /**
+     * Fetch all active users (ignoring role filtering).
+     */
+    @Transactional
+    public List<User> getAllActiveUsers() {
+        return userRepository.findAllActiveUsers();
     }
-    return userRepository.findAllActiveUsers();
-}
 
-// Get user by ID (Only active users)
-public Optional<User> getUserById(Integer userId) {
-    return userRepository.findByIdIfNotDeleted(userId);
-}
+    /**
+     * Get a user by ID.
+     */
+    @Transactional
+    public Optional<User> getUserById(Integer userId) {
+        return userRepository.findByIdIfNotDeleted(userId);
+    }
 
-
-    // Update user details with role integration
-    public User updateUser(Integer userId, User updatedUser, String roleName) {
-        Optional<User> userOptional = userRepository.findByIdIfNotDeleted(userId);
-        if (userOptional.isPresent()) {
-            User user = userOptional.get();
-            user.setUsername(updatedUser.getUsername());
-            user.setEmail(updatedUser.getEmail());
-            user.setPassword(updatedUser.getPassword());
-
-            // Fetch and update role
-            Optional<Role> roleOptional = roleService.getRoleByName(roleName);
-            if (roleOptional.isEmpty()) {
-                throw new RuntimeException("Role not found: " + roleName);
-            }
-            user.setRole(roleOptional.get());
-
-            user.setModifiedOn(LocalDateTime.now()); // Update timestamp
-            return userRepository.save(user);
+    /**
+     * Update an existing user (with optional image update).
+     */
+    public User updateUser(Integer id, User updatedUser, byte[] imageData) {
+        User existingUser = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        if (updatedUser.getUsername() != null) {
+            existingUser.setUsername(updatedUser.getUsername());
         }
-        throw new RuntimeException("User not found!");
+        if (updatedUser.getEmail() != null) {
+            existingUser.setEmail(updatedUser.getEmail());
+        }
+        if (updatedUser.getPassword() != null && !updatedUser.getPassword().isEmpty()) {
+            existingUser.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
+        }
+        if (imageData != null) {
+            existingUser.setImage(imageData);
+        }
+        return userRepository.save(existingUser);
     }
 
-    // Soft delete user
+    /**
+     * Soft delete a user.
+     */
     public boolean softDeleteUser(Integer userId) {
-        Optional<User> userOptional = userRepository.findByIdIfNotDeleted(userId);
-        if (userOptional.isPresent()) {
-            User user = userOptional.get();
-            user.softDelete();
-            userRepository.save(user);
-            return true;
-        }
-        return false;
-    }
-
-    // Restore user
-    public boolean restoreUser(Integer userId) {
-        Optional<User> userOptional = userRepository.findById(userId);
-        if (userOptional.isPresent() && userOptional.get().getDeletedOn() != null) {
-            User user = userOptional.get();
-            user.restore();
-            userRepository.save(user);
-            return true;
-        }
-        return false;
-    }
-    public User uploadUserImage(Integer userId, MultipartFile file) throws IOException {
-        Optional<User> userOptional = userRepository.findById(userId);
-        if (userOptional.isPresent()) {
-            User user = userOptional.get();
-            user.setImage(file.getBytes()); // Convert MultipartFile to byte[]
-            return userRepository.save(user);
-        }
-        throw new RuntimeException("User not found!");
-    }
-    public String getUserImageBase64(Integer userId) {
-        Optional<User> userOptional = userRepository.findById(userId);
-        if (userOptional.isPresent() && userOptional.get().getImage() != null) {
-            return Base64.getEncoder().encodeToString(userOptional.get().getImage());
-        }
-        throw new RuntimeException("User image not found!");
+        return userRepository.findByIdIfNotDeleted(userId)
+                .map(user -> {
+                    user.softDelete();
+                    userRepository.save(user);
+                    return true;
+                })
+                .orElse(false);
     }
 }

@@ -1,43 +1,46 @@
 package com.example.Testlytics.Service;
 
 import com.example.Testlytics.DTO.ResponseDTO;
+import com.example.Testlytics.Entity.Options;
 import com.example.Testlytics.Entity.Response;
+import com.example.Testlytics.Repository.OptionsRepository;
 import com.example.Testlytics.Repository.ResponseRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.UUID;
 
 @Service
 public class ResponseService {
 
-    @Autowired
-    private ResponseRepository responseRepository;
+    private final ResponseRepository responseRepository;
+    private final OptionsRepository optionsRepository;
 
-    // Convert Entity to DTO
-    private ResponseDTO convertToDTO(Response response) {
-        return new ResponseDTO(
-                response.getResponseId(),
-                response.getTest().getTestId(),
-                response.getUser().getUserId(),
-                response.getQuestion().getQuestionId(),
-                response.getSelectedOptionId(),
-                response.getIsCorrect()
-        );
+    public ResponseService(ResponseRepository responseRepository, OptionsRepository optionsRepository) {
+        this.responseRepository = responseRepository;
+        this.optionsRepository = optionsRepository;
     }
 
-    // Submit a response
-    public ResponseDTO saveResponse(Response response) {
-        Response savedResponse = responseRepository.save(response);
-        return convertToDTO(savedResponse);
+    public Response submitResponse(ResponseDTO.SubmitResponse request) {
+        // Fetch the selected option from the database
+        Options selectedOption = optionsRepository.findById(request.getSelectedOptionId())
+                .orElseThrow(() -> new RuntimeException("Option not found with id: " + request.getSelectedOptionId()));
+
+        // Create a new Response entity
+        Response response = new Response();
+        response.setTestId(request.getTestId());
+        response.setQuestionId(request.getQuestionId());
+        response.setUserId(request.getUserId());
+        response.setSelectedOptionId(request.getSelectedOptionId());
+
+        // Set isCorrect based on the selected option's correctness
+        response.setIsCorrect(selectedOption.isCorrect());
+
+        // Save response
+        return responseRepository.save(response);
     }
 
-    // Get responses for a test
-    public List<ResponseDTO> getResponsesByTestId(Long testId) {
-        return responseRepository.findByTestTestId(testId)
-                .stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+    public List<Response> getResponsesByTestId(UUID testId) {
+        return responseRepository.findByTestId(testId);
     }
 }

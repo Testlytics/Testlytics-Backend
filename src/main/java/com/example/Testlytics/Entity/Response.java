@@ -3,8 +3,10 @@ package com.example.Testlytics.Entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.UUID;
+
 @Entity
-@Table(name = "responses")
+@Data
 @Getter
 @Setter
 @NoArgsConstructor
@@ -12,21 +14,18 @@ import lombok.*;
 public class Response {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long responseId; // Primary Key
+    @GeneratedValue
+    private UUID responseId; // Primary Key (UUID)
 
-    @ManyToOne
-    @JoinColumn(name = "test_id", nullable = false)
-    private Test test; // Foreign Key
+    @Column(nullable = false)
+    private UUID testId; // Foreign Key (UUID)
 
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user; // Foreign Key
+    @Column(nullable = false)
+    private UUID questionId; // Foreign Key (UUID)
 
-    @ManyToOne
-    @JoinColumn(name = "question_id", nullable = false)
-    private Question question; // Foreign Key
+    @Column(nullable = false)
+    private Integer userId; // Foreign Key (Integer)
 
-    private Long selectedOptionId;
+    private UUID selectedOptionId;
     private Boolean isCorrect;
 }

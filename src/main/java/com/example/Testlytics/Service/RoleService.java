@@ -2,6 +2,8 @@ package com.example.Testlytics.Service;
 
 import com.example.Testlytics.Entity.Role;
 import com.example.Testlytics.Repository.RoleRepository;
+
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,6 +19,12 @@ public class RoleService {
     public RoleService(RoleRepository roleRepository) {
         this.roleRepository = roleRepository;
     }
+   
+    public Optional<Role> getRoleById(Long roleId) {
+        return roleRepository.findById(roleId);
+    }
+
+
 
     public List<Role> getAllRoles() {
         return roleRepository.findAll();

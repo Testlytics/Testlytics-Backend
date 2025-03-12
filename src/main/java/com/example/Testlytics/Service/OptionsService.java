@@ -21,53 +21,65 @@ public class OptionsService {
     @Autowired
     private QuestionRepository questionRepository;
 
-    // Get all options for a specific question
-    public List<OptionsDTO> getOptionsByQuestionId(UUID questionId) {
-        return optionsRepository.findByQuestionQuestionId(questionId).stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
-    }
 
-    // Get a specific option by ID
-    public OptionsDTO getOptionById(UUID id) {
-        Options option = optionsRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Option not found with id: " + id));
-        return convertToDTO(option);
-    }
+    public OptionsDTO createOption(UUID questionId, String optionText, boolean isCorrect) {
+        Question question = questionRepository.findById(questionId)
+                .orElseThrow(() -> new RuntimeException("Question not found with id: " + questionId));
 
-    // Create a new option for a question
-    public OptionsDTO createOption(OptionsDTO optionDTO) {
-        Question question = questionRepository.findById(optionDTO.getQuestionId())
-                .orElseThrow(() -> new RuntimeException("Question not found with id: " + optionDTO.getQuestionId()));
-
-        Options option = new Options();
-        option.setOptionText(optionDTO.getOptionText());
-        option.setCorrect(optionDTO.isCorrect());
-        option.setQuestion(question);
+        Options option = Options.builder()
+                .optionText(optionText)
+                .isCorrect(isCorrect)
+                .question(question)
+                .build();
 
         return convertToDTO(optionsRepository.save(option));
     }
 
-    // Update an existing option
-    public OptionsDTO updateOption(UUID optionId, OptionsDTO updatedOptionDTO) {
-        Options existingOption = optionsRepository.findById(optionId)
+
+    public List<OptionsDTO> getOptionsByQuestionId(UUID questionId) {
+
+
+        List<Options> options = optionsRepository.findByQuestion_QuestionId(questionId);
+
+        return options.stream()
+                .map(option -> new OptionsDTO(
+                        option.getOptionId(),
+                        option.getQuestion().getQuestionId(), // Ensure `getQuestion()` returns a `Question` entity
+                        option.getOptionText(),
+                        option.isCorrect()
+                ))
+                .collect(Collectors.toList());
+
+    }
+
+    public OptionsDTO updateOption(UUID optionId, String optionText, boolean isCorrect) {
+        Options option = optionsRepository.findById(optionId)
                 .orElseThrow(() -> new RuntimeException("Option not found with id: " + optionId));
 
-        existingOption.setOptionText(updatedOptionDTO.getOptionText());
-        existingOption.setCorrect(updatedOptionDTO.isCorrect());
+        option.setOptionText(optionText);
+        option.setCorrect(isCorrect);
 
-        return convertToDTO(optionsRepository.save(existingOption));
+        Options updatedOption = optionsRepository.save(option);
+        return new OptionsDTO(updatedOption.getOptionId(), updatedOption.getQuestion().getQuestionId(), updatedOption.getOptionText(), updatedOption.isCorrect());
     }
 
-    // Delete an option completely
+    public OptionsDTO getOptionById(UUID optionId) {
+        Options option = optionsRepository.findById(optionId)
+                .orElseThrow(() -> new RuntimeException("Option not found with id: " + optionId));
+
+        return new OptionsDTO(option.getOptionId(), option.getQuestion().getQuestionId(), option.getOptionText(), option.isCorrect());
+    }
+
+
     public void deleteOption(UUID optionId) {
-        if (!optionsRepository.existsById(optionId)) {
-            throw new RuntimeException("Option not found with id: " + optionId);
-        }
-        optionsRepository.deleteById(optionId);
+        Options option = optionsRepository.findById(optionId)
+                .orElseThrow(() -> new RuntimeException("Option not found with id: " + optionId));
+
+        optionsRepository.delete(option);
     }
 
-    // Convert entity to DTO
+
+    // ✅ Convert entity to DTO
     private OptionsDTO convertToDTO(Options option) {
         return new OptionsDTO(
                 option.getOptionId(),

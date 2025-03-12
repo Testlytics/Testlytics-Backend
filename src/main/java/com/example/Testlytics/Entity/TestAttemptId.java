@@ -1,32 +1,16 @@
 package com.example.Testlytics.Entity;
 
+import jakarta.persistence.Embeddable;
+import lombok.*;
+
 import java.io.Serializable;
+import java.util.UUID;
 
+@Embeddable
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class TestAttemptId implements Serializable {
-
-    private Long testId;
-    private Long userId;
-
-    public TestAttemptId() {}
-
-    public TestAttemptId(Long testId, Long userId) {
-        this.testId = testId;
-        this.userId = userId;
-    }
-
-    public Long getTestId() {
-        return testId;
-    }
-
-    public void setTestId(Long testId) {
-        this.testId = testId;
-    }
-
-    public Long getUserId() {
-        return userId;
-    }
-
-    public void setUserId(Long userId) {
-        this.userId = userId;
-    }
+    private UUID testId;
+    private Integer userId;
 }

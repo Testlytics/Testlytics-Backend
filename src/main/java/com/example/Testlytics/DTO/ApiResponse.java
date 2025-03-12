@@ -1,19 +1,27 @@
 package com.example.Testlytics.DTO;
 
 public class ApiResponse<T> {
+    private int statusCode;
     private String status;
     private String message;
     private T responseBody;
 
     public ApiResponse() {}
 
-    public ApiResponse(String status, String message, T responseBody) {
+    public ApiResponse(int statusCode, String status, String message, T responseBody) {
+        this.statusCode = statusCode;
         this.status = status;
         this.message = message;
         this.responseBody = responseBody;
     }
 
     // Getters and Setters
+    public int getStatusCode() {
+        return statusCode;
+    }
+    public void setStatusCode(int statusCode) {
+        this.statusCode = statusCode;
+    }
     public String getStatus() {
         return status;
     }
