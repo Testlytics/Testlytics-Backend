@@ -10,7 +10,7 @@ import java.util.UUID;
 @Repository
 public interface QuestionRepository extends JpaRepository<Question, UUID> {
 
-    List<Question> findByTestDetails_TestId(UUID testId);
+    List<Question> findByTest_TestId(UUID testId);
 
     @Query("SELECT q FROM Question q")
     List<Question> findAllWithImages();

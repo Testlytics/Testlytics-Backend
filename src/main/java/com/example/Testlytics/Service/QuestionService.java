@@ -2,9 +2,9 @@ package com.example.Testlytics.Service;
 
 import com.example.Testlytics.DTO.QuestionDTO;
 import com.example.Testlytics.Entity.Question;
-import com.example.Testlytics.Entity.TestDetails;
+import com.example.Testlytics.Entity.Test;
 import com.example.Testlytics.Repository.QuestionRepository;
-import com.example.Testlytics.Repository.TestDetailsRepository;
+import com.example.Testlytics.Repository.TestRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -29,15 +29,15 @@ public class QuestionService {
     private QuestionRepository questionRepository;
 
     @Autowired
-    private TestDetailsRepository testDetailsRepository;
+    private TestRepository testRepository;
 
     // ✅ Create a new question
     public QuestionDTO createQuestion(UUID testId, String questionText, String answer) {
-        TestDetails testDetails = testDetailsRepository.findById(testId)
-                .orElseThrow(() -> new RuntimeException("TestDetails not found for ID: " + testId));
+        Test test = testRepository.findById(testId)
+                .orElseThrow(() -> new RuntimeException("Test not found for ID: " + testId));
 
         Question question = new Question();
-        question.setTestDetails(testDetails);
+        question.setTest(test);
         question.setQuestionText(questionText);
         question.setAnswer(answer);
 
@@ -46,7 +46,7 @@ public class QuestionService {
 
         return new QuestionDTO(
                 savedQuestion.getQuestionId(),
-                savedQuestion.getTestDetails().getTestId(),
+                savedQuestion.getTest().getTestId(),
                 savedQuestion.getQuestionText(),
                 savedQuestion.getAnswer()
         );
@@ -60,7 +60,7 @@ public class QuestionService {
 
         return new QuestionDTO(
                 question.getQuestionId(),
-                question.getTestDetails().getTestId(),
+                question.getTest().getTestId(),
                 question.getQuestionText(),
                 question.getAnswer(),
                 question.getImage()
@@ -69,7 +69,7 @@ public class QuestionService {
 
     public List<QuestionDTO> getQuestionsByTestId(UUID testId) {
         try {
-            List<Question> questions = questionRepository.findByTestDetails_TestId(testId);
+            List<Question> questions = questionRepository.findByTest_TestId(testId);
 
             if (questions.isEmpty()) {
                 throw new RuntimeException("No questions found for test ID: " + testId);
@@ -78,7 +78,7 @@ public class QuestionService {
             return questions.stream()
                     .map(q -> new QuestionDTO(
                             q.getQuestionId(),
-                            q.getTestDetails().getTestId(),
+                            q.getTest().getTestId(),
                             q.getQuestionText(),
                             q.getAnswer(),
                             q.getImage()))
@@ -100,14 +100,14 @@ public class QuestionService {
 
     
 
-        // Update question details
+        // Update question 
         question.setQuestionText(questionText);
         question.setAnswer(answer);
         Question updatedQuestion = questionRepository.save(question);
 
         return new QuestionDTO(
                 updatedQuestion.getQuestionId(),
-                updatedQuestion.getTestDetails().getTestId(),
+                updatedQuestion.getTest().getTestId(),
                 updatedQuestion.getQuestionText(),
                 updatedQuestion.getAnswer(),
                 updatedQuestion.getImage()
@@ -116,15 +116,15 @@ public class QuestionService {
 
     public void deleteQuestion(UUID testId, UUID questionId) {
         // Validate if the test exists
-        TestDetails testDetails = testDetailsRepository.findById(testId)
-                .orElseThrow(() -> new RuntimeException("TestDetails not found for ID: " + testId));
+        Test test = testRepository.findById(testId)
+                .orElseThrow(() -> new RuntimeException("Test not found for ID: " + testId));
 
         // Find the question
         Question question = questionRepository.findById(questionId)
                 .orElseThrow(() -> new RuntimeException("Question not found for ID: " + questionId));
 
         // Ensure the question belongs to the given test
-        if (!question.getTestDetails().getTestId().equals(testId)) {
+        if (!question.getTest().getTestId().equals(testId)) {
             throw new RuntimeException("Question does not belong to the given test ID: " + testId);
         }
 

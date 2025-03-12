@@ -23,7 +23,7 @@ public class Question {
 
     @ManyToOne
     @JoinColumn(name = "test_id", nullable = false) // Foreign key reference
-    private TestDetails testDetails;
+    private Test test;
 
     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Options> options;
@@ -39,8 +39,8 @@ public class Question {
     private byte[] image;
 
     // Constructor without image
-    public Question(TestDetails testDetails, String questionText, String answer) {
-        this.testDetails = testDetails;
+    public Question(Test test, String questionText, String answer) {
+        this.test = test;
         this.questionText = questionText;
         this.answer = answer;
     }
@@ -53,12 +53,12 @@ public class Question {
         this.questionId = questionId;
     }
 
-    public TestDetails getTestDetails() {
-        return testDetails;
+    public Test getTest() {
+        return test;
     }
 
-    public void setTestDetails(TestDetails testDetails) {
-        this.testDetails = testDetails;
+    public void setTest(Test test) {
+        this.test = test;
     }
 
     public String getQuestionText() {
