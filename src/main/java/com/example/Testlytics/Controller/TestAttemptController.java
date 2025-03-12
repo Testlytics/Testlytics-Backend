@@ -43,4 +43,12 @@ public class TestAttemptController {
         ApiResponse<?> response = service.submitTestAttempt(testId, userId, request);
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
+    @GetMapping("/{testId}/{userId}")
+public ResponseEntity<ApiResponse<?>> getTestAttempt(
+        @PathVariable UUID testId,
+        @PathVariable Integer userId) {
+ 
+    ApiResponse<?> response = service.getTestAttempt(testId, userId);
+    return ResponseEntity.status(response.getStatusCode()).body(response);
+}
 }

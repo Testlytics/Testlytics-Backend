@@ -52,19 +52,7 @@ public class QuestionService {
         );
     }
 
-    // ✅ Get all questions
-    public List<QuestionDTO> getAllQuestions() {
-        List<Question> questions = questionRepository.findAllWithImages();
-        return questions.stream()
-                .map(q -> new QuestionDTO(
-                        q.getQuestionId(),
-                        q.getTestDetails().getTestId(),
-                        q.getQuestionText(),
-                        q.getAnswer(),
-                        q.getImage()))
-                .collect(Collectors.toList());
-    }
-
+    
     // ✅ Get a question by its ID
     public QuestionDTO getQuestionById(UUID questionId) {
         Question question = questionRepository.findById(questionId)
@@ -103,19 +91,14 @@ public class QuestionService {
 
 
     // ✅ Update a question for a specific test
-    public QuestionDTO updateQuestion(UUID testId, UUID questionId, String questionText, String answer) {
-        // Validate if the test exists
-        TestDetails testDetails = testDetailsRepository.findById(testId)
-                .orElseThrow(() -> new RuntimeException("TestDetails not found for ID: " + testId));
-
+    public QuestionDTO updateQuestion( UUID questionId, String questionText, String answer) {
+       
+      
         // Find the question
         Question question = questionRepository.findById(questionId)
                 .orElseThrow(() -> new RuntimeException("Question not found for ID: " + questionId));
 
-        // Ensure the question belongs to the given test
-        if (!question.getTestDetails().getTestId().equals(testId)) {
-            throw new RuntimeException("Question does not belong to the given test ID: " + testId);
-        }
+    
 
         // Update question details
         question.setQuestionText(questionText);

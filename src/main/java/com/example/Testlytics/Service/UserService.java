@@ -1,15 +1,15 @@
 package com.example.Testlytics.Service;
 
-import com.example.Testlytics.Entity.Role;
+import com.example.Testlytics.DTO.UserDTO;
 import com.example.Testlytics.Entity.User;
 import com.example.Testlytics.Repository.UserRepository;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -26,42 +26,38 @@ public class UserService {
     }
 
     /**
-     * Generates a unique user ID.
+     * Generates a unique 4-digit user ID.
      */
     private Integer generateUniqueUserId() {
         int userId;
         do {
-            userId = 1000 + random.nextInt(9000); // Generates a 4-digit ID
+            userId = 1000 + random.nextInt(9000);
         } while (userRepository.existsById(userId));
         return userId;
     }
 
     /**
-     * ✅ Create a new user (with optional image)
+     * Create a new user (with optional image).
      */
     public User saveUser(User user) {
         if (user.getUserId() == null) {
             user.setUserId(generateUniqueUserId());
         }
-    
         // Encrypt password before saving
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-    
         return userRepository.save(user);
-    }
-    
-    /**
-     * ✅ Fetch all active users with optional role filtering.
-     */
-    @Transactional
-    public List<User> getAllActiveUsers(String roleName) {
-        return (roleName != null) 
-            ? userRepository.findAllActiveUsersByRole(roleName) 
-            : userRepository.findAllActiveUsers();
     }
 
     /**
-     * ✅ Get a user by ID.
+     * Fetch all active users (ignoring role filtering).
+     */
+    @Transactional
+    public List<User> getAllActiveUsers() {
+        return userRepository.findAllActiveUsers();
+    }
+
+    /**
+     * Get a user by ID.
      */
     @Transactional
     public Optional<User> getUserById(Integer userId) {
@@ -69,29 +65,28 @@ public class UserService {
     }
 
     /**
-     * ✅ Update an existing user (with optional image update).
+     * Update an existing user (with optional image update).
      */
     public User updateUser(Integer id, User updatedUser, byte[] imageData) {
         User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-
-        // Update only provided fields
-        if (updatedUser.getUsername() != null) existingUser.setUsername(updatedUser.getUsername());
-        if (updatedUser.getEmail() != null) existingUser.setEmail(updatedUser.getEmail());
+        if (updatedUser.getUsername() != null) {
+            existingUser.setUsername(updatedUser.getUsername());
+        }
+        if (updatedUser.getEmail() != null) {
+            existingUser.setEmail(updatedUser.getEmail());
+        }
         if (updatedUser.getPassword() != null && !updatedUser.getPassword().isEmpty()) {
             existingUser.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
         }
-
-        // Update image if provided
         if (imageData != null) {
             existingUser.setImage(imageData);
         }
-
         return userRepository.save(existingUser);
     }
 
     /**
-     * ✅ Soft delete a user.
+     * Soft delete a user.
      */
     public boolean softDeleteUser(Integer userId) {
         return userRepository.findByIdIfNotDeleted(userId)

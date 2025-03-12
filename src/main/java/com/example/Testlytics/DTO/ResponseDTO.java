@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 import java.util.UUID;
 
 @Data
-
 public class ResponseDTO {
 
     @Data
@@ -18,7 +17,6 @@ public class ResponseDTO {
         private UUID questionId;
         private Integer userId;
         private UUID selectedOptionId;
-        private Boolean isCorrect;
     }
 
     @Data
@@ -30,6 +28,6 @@ public class ResponseDTO {
         private UUID questionId;
         private Integer userId;
         private UUID selectedOptionId;
-        private Boolean isCorrect;
+        private Boolean isCorrect; // Keep this for returning data
     }
 }

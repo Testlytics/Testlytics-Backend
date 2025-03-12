@@ -36,16 +36,7 @@ public class QuestionController {
         return ResponseEntity.status(201).body(response);
     }
 
-    // ✅ Get all questions
-    @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN','STUDENT')")
-    public ResponseEntity<ApiResponse<List<QuestionDTO>>> getAllQuestions() {
-        List<QuestionDTO> questions = questionService.getAllQuestions();
-
-        ApiResponse<List<QuestionDTO>> response = new ApiResponse<>(
-                200, "Success", "All questions retrieved successfully.", questions);
-        return ResponseEntity.ok(response);
-    }
+   
 
     // ✅ Get a specific question by ID
     @GetMapping("/{questionId}")
@@ -70,15 +61,15 @@ public class QuestionController {
     }
 
     // ✅ Update a question for a specific test
-    @PutMapping("/{testId}/{questionId}")
+    @PutMapping("/{questionId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<QuestionDTO>> updateQuestion(
-            @PathVariable UUID testId,
+           
             @PathVariable UUID questionId,
             @RequestBody Map<String, String> requestBody) {
         String questionText = requestBody.get("questionText");
         String answer = requestBody.get("answer");
-        QuestionDTO updatedQuestion = questionService.updateQuestion(testId, questionId, questionText, answer);
+        QuestionDTO updatedQuestion = questionService.updateQuestion(questionId, questionText, answer);
 
         ApiResponse<QuestionDTO> response = new ApiResponse<>(
                 200, "Success", "Question updated successfully.", updatedQuestion);
@@ -88,7 +79,7 @@ public class QuestionController {
 
 
     // ✅ Delete a question for a specific test
-    @DeleteMapping("/{testId}/{questionId}")
+    @DeleteMapping("/{questionId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<String>> deleteQuestion(
             @PathVariable UUID testId,

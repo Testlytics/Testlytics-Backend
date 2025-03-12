@@ -20,8 +20,8 @@ void updateUserImage(@Param("id") Long id, @Param("image") byte[] image);
     List<User> findAllActiveUsers();
 
     // Fetch active users by role
-    @Query("SELECT u FROM User u WHERE u.deletedOn IS NULL AND u.role.roleName = :roleName")
-    List<User> findAllActiveUsersByRole(@Param("roleName") String roleName);
+    // @Query("SELECT u FROM User u WHERE u.deletedOn IS NULL AND u.role.roleName = :roleName")
+    // List<User> findAllActiveUsersByRole(@Param("roleName") String roleName);
 
     // Find user by ID if not deleted
     @Query("SELECT u FROM User u WHERE u.userId = :userId AND u.deletedOn IS NULL")

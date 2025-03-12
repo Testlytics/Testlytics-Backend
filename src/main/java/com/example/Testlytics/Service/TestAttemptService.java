@@ -4,6 +4,7 @@ import com.example.Testlytics.DTO.ApiResponse;
 import com.example.Testlytics.DTO.TestAttemptDTO.*;
 import com.example.Testlytics.Entity.TestAttempt;
 import com.example.Testlytics.Entity.TestAttemptId;
+import com.example.Testlytics.Repository.ResponseRepository;
 import com.example.Testlytics.Repository.TestAttemptRepository;
 import org.springframework.stereotype.Service;
 
@@ -14,9 +15,11 @@ import java.util.UUID;
 @Service
 public class TestAttemptService {
     private final TestAttemptRepository repository;
+    private final ResponseRepository responseRepository; // Inject ResponseRepository to calculate score
 
-    public TestAttemptService(TestAttemptRepository repository) {
+    public TestAttemptService(TestAttemptRepository repository, ResponseRepository responseRepository) {
         this.repository = repository;
+        this.responseRepository = responseRepository;
     }
 
     /**
@@ -52,7 +55,11 @@ public class TestAttemptService {
         }
 
         TestAttempt attempt = attemptOpt.get();
-        attempt.setScore(request.getScore());
+
+        // ✅ Calculate score based on correct responses
+        long correctAnswers = responseRepository.countByTestIdAndUserIdAndIsCorrectTrue(testId, userId);
+
+        attempt.setScore((int) correctAnswers); // Each correct answer gives 1 score
         attempt.setCompleted(true);
         attempt.setAttemptEndTime(LocalDateTime.now());
         attempt.setQuery(request.getQuery());
@@ -60,6 +67,16 @@ public class TestAttemptService {
 
         repository.save(attempt);
 
-        return new ApiResponse<>(200, "Success", "Test attempt submitted successfully", "Submission recorded");
+        return new ApiResponse<>(200, "Success", "Test attempt submitted successfully", "Final score: " + correctAnswers);
+    }
+    public ApiResponse<TestAttempt> getTestAttempt(UUID testId, Integer userId) {
+        TestAttemptId attemptId = new TestAttemptId(testId, userId);
+     
+        Optional<TestAttempt> attemptOpt = repository.findById(attemptId);
+        if (attemptOpt.isEmpty()) {
+            return new ApiResponse<>(404, "Error", "Test attempt not found", null);
+        }
+     
+        return new ApiResponse<>(200, "Success", "Test attempt found", attemptOpt.get());
     }
 }

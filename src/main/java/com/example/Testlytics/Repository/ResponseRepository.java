@@ -10,4 +10,7 @@ import java.util.UUID;
 @Repository
 public interface ResponseRepository extends JpaRepository<Response, UUID> {
     List<Response> findByTestId(UUID testId);
+
+    // ✅ Count correct responses for a specific test and user
+    long countByTestIdAndUserIdAndIsCorrectTrue(UUID testId, Integer userId);
 }
