@@ -7,10 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -22,9 +19,14 @@ public class QuestionController {
 
     @PostMapping("/{testId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<QuestionDTO>> createQuestion(@PathVariable UUID testId, @RequestBody Map<String, String> requestBody) {
-        QuestionDTO createdQuestion = questionService.createQuestion(testId, requestBody.get("questionText"), requestBody.get("answer"));
-        return ResponseEntity.status(201).body(new ApiResponse<>(201, "Success", "Question created successfully.", createdQuestion));
+    public ResponseEntity<ApiResponse<QuestionDTO>> createQuestion(
+            @PathVariable UUID testId, @RequestBody QuestionDTO questionDTO) {
+        
+        QuestionDTO createdQuestion = questionService.createQuestion(testId, questionDTO.getQuestionText(),
+                questionDTO.getAnswer(), questionDTO.getOptions());
+
+        return ResponseEntity.status(201)
+                .body(new ApiResponse<>(201, "Success", "Question created successfully.", createdQuestion));
     }
 
     @GetMapping("/{questionId}")
