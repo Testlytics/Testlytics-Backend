@@ -11,11 +11,11 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Response {
+public class Outcome {
 
     @Id
     @GeneratedValue
-    private UUID responseId; // Primary Key (UUID)
+    private UUID outcomeId; // Primary Key (UUID)
 
     @Column(nullable = false)
     private UUID testId; // Foreign Key (UUID)

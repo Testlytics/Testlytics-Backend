@@ -35,21 +35,31 @@ public class TestController {
         return ResponseEntity.ok(new ApiResponse<>(200, "OK", "Test retrieved successfully", test));
     }
 
-    // ✅ CREATE TEST
+    // ✅ CREATE TEST (with conflict validation)
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<TestDTO>> createTest(@RequestBody TestDTO testDTO) {
-        TestDTO createdTest = testService.createTest(testDTO);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new ApiResponse<>(201, "Created", "Test created successfully", createdTest));
+        try {
+            TestDTO createdTest = testService.createTest(testDTO);
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(new ApiResponse<>(201, "Created", "Test created successfully", createdTest));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(new ApiResponse<>(409, "Conflict", e.getMessage(), null));
+        }
     }
 
-    // ✅ UPDATE TEST
+    // ✅ UPDATE TEST (with conflict validation)
     @PutMapping("/{testId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<TestDTO>> updateTest(@PathVariable UUID testId, @RequestBody TestDTO testDTO) {
-        TestDTO updatedTest = testService.updateTest(testId, testDTO);
-        return ResponseEntity.ok(new ApiResponse<>(200, "OK", "Test updated successfully", updatedTest));
+        try {
+            TestDTO updatedTest = testService.updateTest(testId, testDTO);
+            return ResponseEntity.ok(new ApiResponse<>(200, "OK", "Test updated successfully", updatedTest));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(new ApiResponse<>(409, "Conflict", e.getMessage(), null));
+        }
     }
 
     // ✅ DELETE TEST (Soft Delete)

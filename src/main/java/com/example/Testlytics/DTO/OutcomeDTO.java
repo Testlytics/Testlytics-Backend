@@ -7,12 +7,12 @@ import lombok.NoArgsConstructor;
 import java.util.UUID;
 
 @Data
-public class ResponseDTO {
+public class OutcomeDTO {
 
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class SubmitResponse {
+    public static class SubmitOutcome {
         private UUID testId;
         private UUID questionId;
         private Integer userId;
@@ -22,8 +22,8 @@ public class ResponseDTO {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class ResponseDetails {
-        private UUID responseId;
+    public static class OutcomeDetails {
+        private UUID outcomeId;
         private UUID testId;
         private UUID questionId;
         private Integer userId;
