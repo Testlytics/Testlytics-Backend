@@ -79,4 +79,35 @@ public class QuestionService {
     private OptionDTO convertToDTO(Options option) {
         return new OptionDTO(option.getOptionId(), option.getOptionText(), option.isCorrect());
     }
+
+    public QuestionDTO updateQuestion(UUID questionId, String questionText, String answer, List<OptionDTO> options) {
+        Question question = questionRepository.findById(questionId)
+                .orElseThrow(() -> new RuntimeException("Question not found"));
+    
+        // Update question details
+        question.setQuestionText(questionText);
+        question.setAnswer(answer);
+        Question updatedQuestion = questionRepository.save(question);
+    
+        // Delete existing options before saving new ones
+        optionsRepository.deleteAll(optionsRepository.findByQuestion_QuestionId(questionId));
+    
+        // Save new options and set correct option based on answer
+        List<Options> savedOptions = options.stream().map(opt -> {
+            Options option = new Options();
+            option.setQuestion(updatedQuestion);
+            option.setOptionText(opt.getOptionText());
+            option.setCorrect(opt.getOptionText().equalsIgnoreCase(answer)); // ✅ Auto-detect correct option
+            return optionsRepository.save(option);
+        }).collect(Collectors.toList());
+    
+        return new QuestionDTO(
+                updatedQuestion.getQuestionId(),
+                updatedQuestion.getTest().getTestId(),
+                updatedQuestion.getQuestionText(),
+                updatedQuestion.getAnswer(),
+                savedOptions.stream().map(this::convertToDTO).collect(Collectors.toList())
+        );
+    }
+    
 }

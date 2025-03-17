@@ -42,4 +42,19 @@ public class QuestionController {
         questionService.deleteQuestion(questionId);
         return ResponseEntity.ok(new ApiResponse<>(200, "Success", "Question deleted successfully.", null));
     }
+    @PutMapping("/{questionId}")
+@PreAuthorize("hasRole('ADMIN')")
+public ResponseEntity<ApiResponse<QuestionDTO>> updateQuestion(
+        @PathVariable UUID questionId, @RequestBody QuestionDTO questionDTO) {
+    
+    QuestionDTO updatedQuestion = questionService.updateQuestion(
+            questionId, 
+            questionDTO.getQuestionText(), 
+            questionDTO.getAnswer(), 
+            questionDTO.getOptions()
+    );
+
+    return ResponseEntity.ok(new ApiResponse<>(200, "Success", "Question updated successfully.", updatedQuestion));
+}
+
 }

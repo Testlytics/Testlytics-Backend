@@ -59,4 +59,11 @@ public class Test {
     public boolean isDeleted() {
         return deletedOn != null;
     }
+
+    // ✅ Check if the test is currently active
+    public boolean isActive() {
+        LocalDate today = LocalDate.now();
+        LocalTime now = LocalTime.now();
+        return testDate.equals(today) && now.isAfter(startTime) && now.isBefore(endTime);
+    }
 }
