@@ -30,17 +30,23 @@ public class TestService {
         return test.map(this::convertToDTO).orElse(null);
     }
 
-    // ✅ CREATE TEST
+    // ✅ CREATE TEST (with conflict validation)
     public TestDTO createTest(TestDTO testDTO) {
+        if (testRepository.existsConflictingTest(testDTO.getTestDate(), testDTO.getStartTime(), testDTO.getEndTime())) {
+            throw new IllegalStateException("A test is already scheduled during this time.");
+        }
         Test test = convertToEntity(testDTO);
         Test savedTest = testRepository.save(test);
         return convertToDTO(savedTest);
     }
 
-    // ✅ UPDATE TEST
+    // ✅ UPDATE TEST (with conflict validation)
     public TestDTO updateTest(UUID testId, TestDTO testDTO) {
         Optional<Test> optionalTest = testRepository.findActiveTestById(testId);
         if (optionalTest.isPresent()) {
+            if (testRepository.existsConflictingTest(testDTO.getTestDate(), testDTO.getStartTime(), testDTO.getEndTime())) {
+                throw new IllegalStateException("A test is already scheduled during this time.");
+            }
             Test existingTest = optionalTest.get();
             existingTest.setTestName(testDTO.getTestName());
             existingTest.setTestDate(testDTO.getTestDate());
