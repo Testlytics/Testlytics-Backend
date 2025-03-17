@@ -17,7 +17,7 @@ public class QuestionController {
     @Autowired
     private QuestionService questionService;
 
-    @PostMapping("/{testId}")
+    @PostMapping("/test/{testId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<QuestionDTO>> createQuestion(
             @PathVariable UUID testId, @RequestBody QuestionDTO questionDTO) {

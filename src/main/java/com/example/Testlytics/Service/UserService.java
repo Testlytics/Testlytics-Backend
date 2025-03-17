@@ -1,6 +1,6 @@
 package com.example.Testlytics.Service;
 
-import com.example.Testlytics.DTO.UserDTO;
+
 import com.example.Testlytics.Entity.User;
 import com.example.Testlytics.Repository.UserRepository;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -9,19 +9,17 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
-import java.util.stream.Collectors;
+
 
 @Service
 public class UserService {
 
     private final UserRepository userRepository;
-    private final RoleService roleService;
     private final BCryptPasswordEncoder passwordEncoder;
     private final Random random = new Random();
 
     public UserService(UserRepository userRepository, RoleService roleService, BCryptPasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
-        this.roleService = roleService;
         this.passwordEncoder = passwordEncoder;
     }
 

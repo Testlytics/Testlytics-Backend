@@ -22,4 +22,13 @@ public interface TestRepository extends JpaRepository<Test, UUID> {
            "AND ((:startTime BETWEEN t.startTime AND t.endTime) OR (:endTime BETWEEN t.startTime AND t.endTime) " +
            "OR (t.startTime BETWEEN :startTime AND :endTime) OR (t.endTime BETWEEN :startTime AND :endTime))")
     boolean existsConflictingTest(LocalDate testDate, LocalTime startTime, LocalTime endTime);
+    @Query("SELECT t FROM Test t WHERE t.deletedOn IS NULL AND t.testDate > CURRENT_DATE " +
+       "OR (t.testDate = CURRENT_DATE AND t.endTime > CURRENT_TIME)")
+List<Test> findUpcomingTests();
+
+@Query("SELECT t FROM Test t WHERE t.deletedOn IS NULL AND " +
+       "(t.testDate < CURRENT_DATE OR (t.testDate = CURRENT_DATE AND t.endTime <= CURRENT_TIME))")
+List<Test> findCompletedTests();
+
+
 }

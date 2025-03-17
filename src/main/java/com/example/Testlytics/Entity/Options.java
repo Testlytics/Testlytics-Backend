@@ -1,6 +1,6 @@
 package com.example.Testlytics.Entity;
 
-import com.example.Testlytics.DTO.QuestionDTO;
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -66,4 +66,3 @@ public class Options {
 
 
 }
-

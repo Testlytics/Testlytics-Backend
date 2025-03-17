@@ -60,10 +60,25 @@ public class Test {
         return deletedOn != null;
     }
 
-    // ✅ Check if the test is currently active
+    // ✅ Check if the test is active (ongoing)
     public boolean isActive() {
-        LocalDate today = LocalDate.now();
-        LocalTime now = LocalTime.now();
-        return testDate.equals(today) && now.isAfter(startTime) && now.isBefore(endTime);
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime startDateTime = LocalDateTime.of(testDate, startTime);
+        LocalDateTime endDateTime = LocalDateTime.of(testDate, endTime);
+        return now.isAfter(startDateTime) && now.isBefore(endDateTime);
+    }
+
+    // ✅ Check if the test is completed (past end time)
+    public boolean isCompleted() {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime endDateTime = LocalDateTime.of(testDate, endTime);
+        return now.isAfter(endDateTime);
+    }
+
+    // ✅ Check if the test is upcoming (future test)
+    public boolean isUpcoming() {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime startDateTime = LocalDateTime.of(testDate, startTime);
+        return now.isBefore(startDateTime);
     }
 }
