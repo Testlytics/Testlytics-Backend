@@ -6,7 +6,9 @@ import com.example.Testlytics.Repository.TestRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -20,15 +22,30 @@ public class TestService {
 
     // ✅ GET ALL TESTS
     public List<TestDTO> getAllTests() {
-        List<Test> tests = testRepository.findAllActiveTests();
-        return tests.stream().map(this::convertToDTO).collect(Collectors.toList());
-    }
+    List<Test> tests = testRepository.findAllActiveTests()
+            .stream()
+            .filter(test -> test.getTestDate().isAfter(LocalDate.now()) ||
+                    (test.getTestDate().isEqual(LocalDate.now()) && test.getEndTime().isAfter(LocalTime.now())))
+            .collect(Collectors.toList());
+    return tests.stream().map(this::convertToDTO).collect(Collectors.toList());
+}
+
 
     // ✅ GET TEST BY ID
     public TestDTO getTestById(UUID testId) {
         Optional<Test> test = testRepository.findActiveTestById(testId);
         return test.map(this::convertToDTO).orElse(null);
     }
+    public List<TestDTO> getUpcomingTests() {
+        List<Test> upcomingTests = testRepository.findUpcomingTests();
+        return upcomingTests.stream().map(this::convertToDTO).collect(Collectors.toList());
+    }
+    public List<TestDTO> getCompletedTests() {
+        List<Test> completedTests = testRepository.findCompletedTests();
+        return completedTests.stream().map(this::convertToDTO).collect(Collectors.toList());
+    }
+    
+    
 
     // ✅ CREATE TEST
     public TestDTO createTest(TestDTO testDTO) {

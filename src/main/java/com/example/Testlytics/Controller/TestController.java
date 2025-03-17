@@ -34,6 +34,20 @@ public class TestController {
         TestDTO test = testService.getTestById(testId);
         return ResponseEntity.ok(new ApiResponse<>(200, "OK", "Test retrieved successfully", test));
     }
+    @GetMapping("/upcoming")
+    @PreAuthorize("hasAnyRole('STUDENT', 'ADMIN')")
+    public ResponseEntity<ApiResponse<List<TestDTO>>> getUpcomingTests() {
+        List<TestDTO> upcomingTests = testService.getUpcomingTests();
+        return ResponseEntity.ok(new ApiResponse<>(200, "OK", "Upcoming tests retrieved successfully", upcomingTests));
+    }
+    @GetMapping("/history")
+    @PreAuthorize("hasAnyRole('STUDENT', 'ADMIN')")
+    public ResponseEntity<ApiResponse<List<TestDTO>>> getCompletedTests() {
+        List<TestDTO> completedTests = testService.getCompletedTests();
+        return ResponseEntity.ok(new ApiResponse<>(200, "OK", "Completed tests retrieved successfully", completedTests));
+    }
+
+
 
     // ✅ CREATE TEST (with conflict validation)
     @PostMapping
