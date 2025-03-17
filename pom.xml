@@ -29,6 +29,7 @@
     <properties>
         <java.version>17</java.version>
     </properties>
+    
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -85,10 +86,18 @@
             <version>0.11.5</version>
             <scope>runtime</scope>
         </dependency>
+        <dependency>
+            <groupId>com.itextpdf</groupId>
+            <artifactId>itext7-core</artifactId>
+            <version>9.1.0</version>
+            <type>pom</type>
+        </dependency>
+        
 
 
 
     </dependencies>
+    
  
     <build>
         <plugins>
