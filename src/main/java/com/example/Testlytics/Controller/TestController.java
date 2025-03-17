@@ -49,20 +49,15 @@ public class TestController {
         }
     }
 
-    // ✅ UPDATE TEST (with conflict validation)
+    // ✅ UPDATE TEST
     @PutMapping("/{testId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<TestDTO>> updateTest(@PathVariable UUID testId, @RequestBody TestDTO testDTO) {
-        try {
-            TestDTO updatedTest = testService.updateTest(testId, testDTO);
-            return ResponseEntity.ok(new ApiResponse<>(200, "OK", "Test updated successfully", updatedTest));
-        } catch (IllegalStateException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body(new ApiResponse<>(409, "Conflict", e.getMessage(), null));
-        }
+        TestDTO updatedTest = testService.updateTest(testId, testDTO);
+        return ResponseEntity.ok(new ApiResponse<>(200, "OK", "Test updated successfully", updatedTest));
     }
 
-    // ✅ DELETE TEST (Soft Delete)
+    // ✅ DELETE TEST
     @DeleteMapping("/{testId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Void>> deleteTest(@PathVariable UUID testId) {

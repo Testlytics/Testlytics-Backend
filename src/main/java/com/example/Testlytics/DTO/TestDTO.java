@@ -17,4 +17,5 @@ public class TestDTO {
     private int testDuration;
     private LocalTime startTime;
     private LocalTime endTime;
+    private boolean isActive;  // ✅ New field
 }

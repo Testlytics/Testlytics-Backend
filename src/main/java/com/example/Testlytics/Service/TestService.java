@@ -30,23 +30,17 @@ public class TestService {
         return test.map(this::convertToDTO).orElse(null);
     }
 
-    // ✅ CREATE TEST (with conflict validation)
+    // ✅ CREATE TEST
     public TestDTO createTest(TestDTO testDTO) {
-        if (testRepository.existsConflictingTest(testDTO.getTestDate(), testDTO.getStartTime(), testDTO.getEndTime())) {
-            throw new IllegalStateException("A test is already scheduled during this time.");
-        }
         Test test = convertToEntity(testDTO);
         Test savedTest = testRepository.save(test);
         return convertToDTO(savedTest);
     }
 
-    // ✅ UPDATE TEST (with conflict validation)
+    // ✅ UPDATE TEST
     public TestDTO updateTest(UUID testId, TestDTO testDTO) {
         Optional<Test> optionalTest = testRepository.findActiveTestById(testId);
         if (optionalTest.isPresent()) {
-            if (testRepository.existsConflictingTest(testDTO.getTestDate(), testDTO.getStartTime(), testDTO.getEndTime())) {
-                throw new IllegalStateException("A test is already scheduled during this time.");
-            }
             Test existingTest = optionalTest.get();
             existingTest.setTestName(testDTO.getTestName());
             existingTest.setTestDate(testDTO.getTestDate());
@@ -59,7 +53,7 @@ public class TestService {
         return null;
     }
 
-    // ✅ DELETE TEST (Soft Delete)
+    // ✅ DELETE TEST
     public void deleteTest(UUID testId) {
         Optional<Test> optionalTest = testRepository.findById(testId);
         if (optionalTest.isPresent()) {
@@ -79,6 +73,7 @@ public class TestService {
                 .testDuration(test.getTestDuration())
                 .startTime(test.getStartTime())
                 .endTime(test.getEndTime())
+                .isActive(test.isActive())  // ✅ Now includes `isActive` status
                 .build();
     }
 
