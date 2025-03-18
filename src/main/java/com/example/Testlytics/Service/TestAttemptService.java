@@ -9,8 +9,10 @@ import com.example.Testlytics.Repository.TestAttemptRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class TestAttemptService {
@@ -70,6 +72,9 @@ public class TestAttemptService {
         return new ApiResponse<>(200, "Success", "Test attempt submitted successfully", "Final score: " + correctAnswers);
     }
 
+    /**
+     * Get a test attempt.
+     */
     public ApiResponse<TestAttempt> getTestAttempt(UUID testId, Integer userId) {
         TestAttemptId attemptId = new TestAttemptId(testId, userId);
 
@@ -79,5 +84,36 @@ public class TestAttemptService {
         }
 
         return new ApiResponse<>(200, "Success", "Test attempt found", attemptOpt.get());
+    }
+
+    /**
+     * Get user attendance - List of test IDs that a user has attempted.
+     */
+    public ApiResponse<List<UUID>> getUserAttendance(Integer userId) {
+        List<TestAttempt> attempts = repository.findTestAttemptsByUserId(userId);
+
+        if (attempts.isEmpty()) {
+            return new ApiResponse<>(404, "Error", "No attendance records found for this user", null);
+        }
+
+        // Extract test IDs from attempts
+        List<UUID> attendedTests = attempts.stream()
+                .map(attempt -> attempt.getId().getTestId())
+                .collect(Collectors.toList());
+
+        return new ApiResponse<>(200, "Success", "Attendance records found", attendedTests);
+    }
+
+    /**
+     * Get the list of students who have attended a specific test.
+     */
+    public ApiResponse<List<Integer>> getStudentsByTestId(UUID testId) {
+        List<Integer> students = repository.findUsersByTestId(testId);
+
+        if (students.isEmpty()) {
+            return new ApiResponse<>(404, "Error", "No students attended this test", null);
+        }
+
+        return new ApiResponse<>(200, "Success", "Students found", students);
     }
 }
