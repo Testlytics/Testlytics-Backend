@@ -1,19 +1,19 @@
 package com.example.Testlytics.Controller;
 
 import com.example.Testlytics.DTO.ApiResponse;
+import com.example.Testlytics.DTO.TestAttemptDTO.TestAttemptFeedbackRequest;
 import com.example.Testlytics.DTO.TestAttemptDTO.TestAttemptStartRequest;
 import com.example.Testlytics.DTO.TestAttemptDTO.TestAttemptSubmitRequest;
 import com.example.Testlytics.Service.TestAttemptService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-
+import java.util.Optional;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/test-attempts")
+@RequestMapping("/api/attempts")
 public class TestAttemptController {
-
     private final TestAttemptService service;
 
     public TestAttemptController(TestAttemptService service) {
@@ -23,60 +23,74 @@ public class TestAttemptController {
     /**
      * Start a test attempt.
      */
-    @PostMapping
-    public ResponseEntity<ApiResponse<?>> startTestAttempt(@RequestBody TestAttemptStartRequest request) {
-        System.out.println("Received testId: " + request.getTestId());
-        System.out.println("Received userId: " + request.getUserId());
+    @PostMapping("/start")
+    public ResponseEntity<ApiResponse<?>> startTestAttempt(
+            @RequestParam UUID testId,
+            @RequestParam Integer userId) {
 
-        ApiResponse<?> response = service.startTestAttempt(request.getTestId(), request.getUserId());
+        ApiResponse<?> response = service.startTestAttempt(testId, userId);
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
     /**
      * Submit a test attempt.
      */
-    @PutMapping("/test/{testId}/user/{userId}")
+    @PutMapping("/submit")
     public ResponseEntity<ApiResponse<?>> submitTestAttempt(
-            @PathVariable UUID testId,
-            @PathVariable Integer userId,
+            @RequestParam UUID testId,
+            @RequestParam Integer userId,
             @RequestBody TestAttemptSubmitRequest request) {
 
         ApiResponse<?> response = service.submitTestAttempt(testId, userId, request);
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
-    // /**
-    //  * Get a test attempt.
-    //  */
-    // @GetMapping("/{testId}/{userId}")
-    // public ResponseEntity<ApiResponse<?>> getTestAttempt(
-    //         @PathVariable UUID testId,
-    //         @PathVariable Integer userId) {
-    //     ApiResponse<?> response = service.getTestAttempt(testId, userId);
-    //     return ResponseEntity.status(response.getStatusCode()).body(response);
-    // }
+    @PutMapping("/feedback")
+public ResponseEntity<ApiResponse<?>> addTeacherFeedback(
+        @RequestParam UUID testId,
+        @RequestParam Integer userId,
+        @RequestBody TestAttemptFeedbackRequest request) {
+
+    ApiResponse<?> response = service.addTeacherFeedback(testId, userId, request);
+    return ResponseEntity.status(response.getStatusCode()).body(response);
+}
+
 
     /**
-     * Get attendance report - List of tests a user has attended.
+     * Get a user's test attempt details.
      */
-    @GetMapping("/attendance/user/{userId}")
+    @GetMapping("/{testId}/user/{userId}")
+    public ResponseEntity<ApiResponse<?>> getTestAttempt(
+            @PathVariable UUID testId,
+            @PathVariable Integer userId) {
+        ApiResponse<?> response = service.getTestAttempt(testId, userId);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
+    }
+
+    /**
+     * Get attendance report - List of tests a user has attempted.
+     */
+    @GetMapping("/user/{userId}/attendance")
     public ResponseEntity<ApiResponse<?>> getUserAttendance(@PathVariable Integer userId) {
         ApiResponse<?> response = service.getUserAttendance(userId);
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
-     /**
+    /**
      * Get the list of students who attended a specific test.
      */
-    @GetMapping("/attendance/test/{testId}")
-    public ResponseEntity<ApiResponse<?>> getStudentsByTest(@PathVariable String testId) {
-        try {
-            UUID uuid = UUID.fromString(testId); // Validate UUID format
-            ApiResponse<?> response = service.getStudentsByTestId(uuid);
-            return ResponseEntity.status(response.getStatusCode()).body(response);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(new ApiResponse<>(400, "Error", "Invalid UUID format", null));
-        }
+    @GetMapping("/test/{testId}/students")
+    public ResponseEntity<ApiResponse<?>> getStudentsByTest(@PathVariable UUID testId) {
+        ApiResponse<?> response = service.getStudentsByTestId(testId);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
-    
+
+    /**
+     * Get the average score for a subject.
+     */
+    @GetMapping("/subjects/{subjectId}/average-score")
+    public ResponseEntity<ApiResponse<Double>> getAverageScore(@PathVariable UUID subjectId) {
+        Double averageScore = service.getAverageScoreBySubject(subjectId).orElse(0.0);
+        return ResponseEntity.ok(new ApiResponse<>(200, "Success", "Average score retrieved", averageScore));
+    }
 }

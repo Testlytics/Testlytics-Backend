@@ -63,5 +63,15 @@ public ResponseEntity<?> login(@RequestBody Map<String, String> credentials) {
                 .body(Map.of("error", "Invalid credentials"));
     }
 }
+@PostMapping("/logout")
+public ResponseEntity<?> logout(@RequestHeader("Authorization") String authHeader) {
+    if (authHeader != null && authHeader.startsWith("Bearer ")) {
+        String token = authHeader.substring(7);
+        jwtTokenProvider.blacklistToken(token);
+        return ResponseEntity.ok(Map.of("message", "Logged out successfully"));
+    }
+    return ResponseEntity.badRequest().body(Map.of("error", "Invalid token"));
+}
+
 
 }

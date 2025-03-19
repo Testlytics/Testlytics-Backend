@@ -15,7 +15,6 @@ public class TestAttempt {
     private TestAttemptId id;
 
     private int score;
-    private boolean completed;
     private LocalDateTime attemptStartTime;
     private LocalDateTime attemptEndTime;
     private String query;

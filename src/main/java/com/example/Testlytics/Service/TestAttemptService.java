@@ -23,7 +23,10 @@ public class TestAttemptService {
         this.repository = repository;
         this.outcomeRepository = outcomeRepository;
     }
-
+    
+    public Optional<Double> getAverageScoreBySubject(UUID subjectId) {
+        return repository.findAverageScoreBySubject(subjectId);
+    }
     /**
      * Start a test attempt.
      */
@@ -39,7 +42,7 @@ public class TestAttemptService {
             return new ApiResponse<>(400, "Error", "Test attempt already exists", null);
         }
 
-        TestAttempt attempt = new TestAttempt(id, 0, false, LocalDateTime.now(), null, null, null);
+        TestAttempt attempt = new TestAttempt(id, 0, LocalDateTime.now(), null, null, null);
         repository.save(attempt);
 
         return new ApiResponse<>(201, "Success", "Test attempt started", id);
@@ -50,27 +53,46 @@ public class TestAttemptService {
      */
     public ApiResponse<String> submitTestAttempt(UUID testId, Integer userId, TestAttemptSubmitRequest request) {
         TestAttemptId attemptId = new TestAttemptId(testId, userId);
-
+    
         Optional<TestAttempt> attemptOpt = repository.findById(attemptId);
         if (attemptOpt.isEmpty()) {
             return new ApiResponse<>(404, "Error", "Test attempt not found", null);
         }
-
+    
         TestAttempt attempt = attemptOpt.get();
-
-        // ✅ Calculate score based on correct outcomes (renamed from responses)
+    
+        // ✅ Calculate score based on correct outcomes
         long correctAnswers = outcomeRepository.countByTestIdAndUserIdAndIsCorrectTrue(testId, userId);
-
+    
         attempt.setScore((int) correctAnswers); // Each correct answer gives 1 score
-        attempt.setCompleted(true);
-        attempt.setAttemptEndTime(LocalDateTime.now());
-        attempt.setQuery(request.getQuery());
-        attempt.setFeedback(request.getFeedback());
-
+        attempt.setAttemptEndTime(LocalDateTime.now()); // ⏳ End time is updated now
+        attempt.setQuery(request.getQuery()); // ✅ Only query is set
+        attempt.setFeedback(null); // ❌ Feedback should be null (teacher adds this later)
+    
         repository.save(attempt);
-
+    
         return new ApiResponse<>(200, "Success", "Test attempt submitted successfully", "Final score: " + correctAnswers);
     }
+    
+
+    public ApiResponse<String> addTeacherFeedback(UUID testId, Integer userId, TestAttemptFeedbackRequest request) {
+        TestAttemptId attemptId = new TestAttemptId(testId, userId);
+    
+        Optional<TestAttempt> attemptOpt = repository.findById(attemptId);
+        if (attemptOpt.isEmpty()) {
+            return new ApiResponse<>(404, "Error", "Test attempt not found", null);
+        }
+    
+        TestAttempt attempt = attemptOpt.get();
+    
+        // ✅ Only update the feedback (DO NOT change end time)
+        attempt.setFeedback(request.getFeedback());
+    
+        repository.save(attempt);
+    
+        return new ApiResponse<>(200, "Success", "Feedback added successfully", "Feedback: " + request.getFeedback());
+    }
+    
 
     /**
      * Get a test attempt.

@@ -11,6 +11,9 @@ import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 public class JwtTokenProvider {
@@ -22,6 +25,8 @@ public class JwtTokenProvider {
     private long validityInMilliseconds;
 
     private Key key;
+
+    private final Set<String> blacklistedTokens = ConcurrentHashMap.newKeySet();
 
     @PostConstruct
     protected void init() {
@@ -48,15 +53,24 @@ public class JwtTokenProvider {
                 .compact();
     }
 
-    // Validate the token
-    public boolean validateToken(String token) {
-        try {
-            Jws<Claims> claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
-            return !claims.getBody().getExpiration().before(new Date());
-        } catch (Exception e) {
-            return false;
-        }
+
+     // Blacklist a token (Logout)
+     public void blacklistToken(String token) {
+        blacklistedTokens.add(token);
     }
+    // Validate the token
+   // Modify validateToken to check blacklist
+   public boolean validateToken(String token) {
+    try {
+        if (blacklistedTokens.contains(token)) {
+            return false; // Token is blacklisted
+        }
+        Jws<Claims> claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
+        return !claims.getBody().getExpiration().before(new Date());
+    } catch (Exception e) {
+        return false;
+    }
+}
 
     // Extract email (username) from token
     public String getEmail(String token) {
