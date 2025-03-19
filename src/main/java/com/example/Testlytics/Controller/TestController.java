@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/test")
+@RequestMapping("/api/tests")
 public class TestController {
 
     @Autowired
@@ -28,12 +28,12 @@ public class TestController {
     }
 
     // ✅ GET TEST BY ID
-    @GetMapping("/{testId}")
-    @PreAuthorize("hasAnyRole('STUDENT', 'ADMIN')")
-    public ResponseEntity<ApiResponse<TestDTO>> getTestById(@PathVariable UUID testId) {
-        TestDTO test = testService.getTestById(testId);
-        return ResponseEntity.ok(new ApiResponse<>(200, "OK", "Test retrieved successfully", test));
-    }
+    // @GetMapping("/{testId}")
+    // @PreAuthorize("hasAnyRole('STUDENT', 'ADMIN')")
+    // public ResponseEntity<ApiResponse<TestDTO>> getTestById(@PathVariable UUID testId) {
+    //     TestDTO test = testService.getTestById(testId);
+    //     return ResponseEntity.ok(new ApiResponse<>(200, "OK", "Test retrieved successfully", test));
+    // }
     @GetMapping("/upcoming")
     @PreAuthorize("hasAnyRole('STUDENT', 'ADMIN')")
     public ResponseEntity<ApiResponse<List<TestDTO>>> getUpcomingTests() {

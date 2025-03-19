@@ -10,6 +10,8 @@ import java.util.*;
 public interface QuestionRepository extends JpaRepository<Question, UUID> {
 
     List<Question> findByTest_TestId(UUID testId);
+    
+
    
 
 

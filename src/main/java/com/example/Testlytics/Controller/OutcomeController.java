@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/outcomes")
+@RequestMapping("/api/tests/{testId}/outcomes")
 public class OutcomeController {
 
     private final OutcomeService outcomeService;
@@ -21,8 +21,9 @@ public class OutcomeController {
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse<Outcome>> submitOutcome(@RequestBody OutcomeDTO.SubmitOutcome request) {
-        Outcome outcome = outcomeService.submitOutcome(request);
+    public ResponseEntity<ApiResponse<Outcome>> submitOutcome(
+            @PathVariable UUID testId, @RequestBody OutcomeDTO.SubmitOutcome request) {  // 👈 Removed testId from request body
+        Outcome outcome = outcomeService.submitOutcome(testId, request);  // 👈 Pass testId from URL
 
         ApiResponse<Outcome> apiResponse = new ApiResponse<>(
                 201, "Created", "Outcome submitted successfully", outcome);
@@ -30,7 +31,7 @@ public class OutcomeController {
         return ResponseEntity.status(201).body(apiResponse);
     }
 
-    @GetMapping("/{testId}")
+    @GetMapping
     public ResponseEntity<ApiResponse<List<Outcome>>> getOutcomesByTestId(@PathVariable UUID testId) {
         List<Outcome> outcomes = outcomeService.getOutcomesByTestId(testId);
 

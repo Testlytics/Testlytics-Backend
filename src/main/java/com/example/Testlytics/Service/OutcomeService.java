@@ -21,14 +21,14 @@ public class OutcomeService {
         this.optionsRepository = optionsRepository;
     }
 
-    public Outcome submitOutcome(OutcomeDTO.SubmitOutcome request) {
+    public Outcome submitOutcome(UUID testId, OutcomeDTO.SubmitOutcome request) {  // 👈 Added testId as parameter
         // Fetch the selected option from the database
         Options selectedOption = optionsRepository.findById(request.getSelectedOptionId())
                 .orElseThrow(() -> new RuntimeException("Option not found with id: " + request.getSelectedOptionId()));
 
         // Create a new Outcome entity
         Outcome outcome = new Outcome();
-        outcome.setTestId(request.getTestId());
+        outcome.setTestId(testId);  // 👈 Use testId from method parameter
         outcome.setQuestionId(request.getQuestionId());
         outcome.setUserId(request.getUserId());
         outcome.setSelectedOptionId(request.getSelectedOptionId());
