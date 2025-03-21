@@ -78,25 +78,28 @@ public class QuestionService {
         );
     }
  
-    /**
-     * Fetches a question by its ID.
-     */
-    public QuestionDTO getQuestionById(UUID questionId) {
-        Question question = questionRepository.findById(questionId)
-                .orElseThrow(() -> new RuntimeException("Question not found"));
- 
-        List<OptionDTO> options = optionsRepository.findByQuestion_QuestionId(questionId)
-                .stream().map(this::convertToDTO).collect(Collectors.toList());
- 
-        return new QuestionDTO(
-                question.getQuestionId(),
-                question.getTest().getTestId(),
-                question.getQuestionText(),
-                question.getAnswer(),
-                options,
-                question.getImage()
-        );
+    
+
+    public List<QuestionDTO> getQuestionsByTestId(UUID testId) {
+        List<Question> questions = questionRepository.findByTest_TestId(testId);
+        
+        return questions.stream().map(question -> {
+            List<OptionDTO> options = optionsRepository.findByQuestion_QuestionId(question.getQuestionId())
+                    .stream()
+                    .map(this::convertToDTO)
+                    .collect(Collectors.toList());
+    
+            return new QuestionDTO(
+                    question.getQuestionId(),
+                    testId,
+                    question.getQuestionText(),
+                    question.getAnswer(),
+                    options,
+                    question.getImage()
+            );
+        }).collect(Collectors.toList());
     }
+    
  
     /**
      * Updates a question and its options.

@@ -8,6 +8,7 @@ import com.example.Testlytics.Service.RoleService;
 import com.example.Testlytics.Service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -53,47 +54,55 @@ public class UserController {
     
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
-    public ResponseEntity<ApiResponse<UserDTO>> createUser(
-            @RequestParam("user") String userJson,
-            @RequestPart(value = "image", required = false) MultipartFile image) throws IOException {
-    
-        ObjectMapper objectMapper = new ObjectMapper();
-        User user = objectMapper.readValue(userJson, User.class); // Deserialize JSON
-    
-        // Validate Required Fields
-        if (user.getUsername() == null || user.getUsername().trim().isEmpty()) {
-            return ResponseEntity.badRequest().body(new ApiResponse<>(400, "error", "Username is required", null));
-        }
-        if (user.getEmail() == null || user.getEmail().trim().isEmpty()) {
-            return ResponseEntity.badRequest().body(new ApiResponse<>(400, "error", "Email is required", null));
-        }
-        if (user.getPassword() == null || user.getPassword().trim().isEmpty()) {
-            return ResponseEntity.badRequest().body(new ApiResponse<>(400, "error", "Password is required", null));
-        }
-        if (user.getRole() == null || user.getRole().getId() == null) {
-            return ResponseEntity.badRequest().body(new ApiResponse<>(400, "error", "Role ID is required", null));
-        }
-    
-        // ✅ Check if role exists
-        Optional<Role> roleOptional = roleService.getRoleById(user.getRole().getId());
-        if (roleOptional.isEmpty()) {
-            return ResponseEntity.badRequest().body(new ApiResponse<>(400, "error", "Invalid role ID", null));
-        }
-    
-        // Set role
-        user.setRole(roleOptional.get());
-    
-        // ✅ Process Image
-        if (image != null && !image.isEmpty()) {
-            user.setImage(image.getBytes());
-        }
-    
-        // ✅ Save User
+public ResponseEntity<ApiResponse<UserDTO>> createUser(
+        @RequestParam("user") String userJson,
+        @RequestPart(value = "image", required = false) MultipartFile image) throws IOException {
+
+    ObjectMapper objectMapper = new ObjectMapper();
+    User user = objectMapper.readValue(userJson, User.class); // Deserialize JSON
+
+    // ✅ Validate Required Fields
+    if (user.getUsername() == null || user.getUsername().trim().isEmpty()) {
+        return ResponseEntity.badRequest().body(new ApiResponse<>(400, "error", "Username is required", null));
+    }
+    if (user.getEmail() == null || user.getEmail().trim().isEmpty()) {
+        return ResponseEntity.badRequest().body(new ApiResponse<>(400, "error", "Email is required", null));
+    }
+    if (user.getPassword() == null || user.getPassword().trim().isEmpty()) {
+        return ResponseEntity.badRequest().body(new ApiResponse<>(400, "error", "Password is required", null));
+    }
+    if (user.getRole() == null || user.getRole().getId() == null) {
+        return ResponseEntity.badRequest().body(new ApiResponse<>(400, "error", "Role ID is required", null));
+    }
+
+    // ✅ Check if email already exists
+    if (userService.existsByEmail(user.getEmail())) {
+        return ResponseEntity.badRequest().body(new ApiResponse<>(400, "error", "Email is already taken", null));
+    }
+   
+    // ✅ Check if role exists
+    Optional<Role> roleOptional = roleService.getRoleById(user.getRole().getId());
+    if (roleOptional.isEmpty()) {
+        return ResponseEntity.badRequest().body(new ApiResponse<>(400, "error", "Invalid role ID", null));
+    }
+
+    // Set role
+    user.setRole(roleOptional.get());
+
+    // ✅ Process Image
+    if (image != null && !image.isEmpty()) {
+        user.setImage(image.getBytes());
+    }
+
+    // ✅ Save User and Handle Unique Constraint Violations
+    try {
         User createdUser = userService.saveUser(user);
-    
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new ApiResponse<>(201, "success", "User created successfully", UserDTO.fromUser(createdUser)));
+    } catch (DataIntegrityViolationException e) {
+        return ResponseEntity.badRequest().body(new ApiResponse<>(400, "error", "Email or username already exists", null));
     }
+}
     
     // Update user details (including optional image update)
     @PreAuthorize("hasAnyRole('ADMIN','STUDENT')")

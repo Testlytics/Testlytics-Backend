@@ -31,13 +31,18 @@ public class OutcomeController {
         return ResponseEntity.status(201).body(apiResponse);
     }
 
+    
     @GetMapping
-    public ResponseEntity<ApiResponse<List<Outcome>>> getOutcomesByTestId(@PathVariable UUID testId) {
-        List<Outcome> outcomes = outcomeService.getOutcomesByTestId(testId);
+public ResponseEntity<ApiResponse<List<Outcome>>> getUserOutcomesByTestId(
+        @PathVariable UUID testId,
+        @RequestParam Integer userId) {  // ✅ Fetch outcomes for a specific user
 
-        ApiResponse<List<Outcome>> apiResponse = new ApiResponse<>(
-                200, "OK", "Outcomes retrieved successfully", outcomes);
+    List<Outcome> outcomes = outcomeService.getUserOutcomesByTestId(testId, userId);
 
-        return ResponseEntity.ok(apiResponse);
-    }
+    ApiResponse<List<Outcome>> apiResponse = new ApiResponse<>(
+            200, "OK", "User-specific outcomes retrieved successfully", outcomes);
+
+    return ResponseEntity.ok(apiResponse);
+}
+
 }

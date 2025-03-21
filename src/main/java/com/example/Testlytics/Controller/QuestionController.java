@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
  
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.UUID;
 import java.util.logging.Logger;
  
@@ -73,16 +74,15 @@ public class QuestionController {
                 .contentType(MediaType.APPLICATION_PDF)
                 .body(pdfContent);
     }
-    // @GetMapping("questions/{questionId}")
-    // @PreAuthorize("hasRole('ADMIN')")
-    // public ResponseEntity<ApiResponse<QuestionDTO>> getQuestionById(@PathVariable UUID questionId) {
-    //     try {
-    //         QuestionDTO question = questionService.getQuestionById(questionId);
-    //         return ResponseEntity.ok(new ApiResponse<>(200, "Success", "Question fetched successfully.", question));
-    //     } catch (Exception e) {
-    //         return ResponseEntity.status(404).body(new ApiResponse<>(404, "Error", e.getMessage(), null));
-    //     }
-    // }
+
+    @GetMapping("/tests/{testId}/questions")
+    @PreAuthorize("hasAnyRole('ADMIN','STUDENT')")
+    public ResponseEntity<ApiResponse<List<QuestionDTO>>> getQuestionsByTestId(@PathVariable UUID testId) {
+        List<QuestionDTO> questions = questionService.getQuestionsByTestId(testId);
+        return ResponseEntity.ok(new ApiResponse<>(200, "Success", "Questions retrieved successfully.", questions));
+    }
+    
+   
  
     /**
      * ✅ PUT - Update a question by ID

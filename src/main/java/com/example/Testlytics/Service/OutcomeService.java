@@ -21,26 +21,30 @@ public class OutcomeService {
         this.optionsRepository = optionsRepository;
     }
 
-    public Outcome submitOutcome(UUID testId, OutcomeDTO.SubmitOutcome request) {  // 👈 Added testId as parameter
+    public Outcome submitOutcome(UUID testId, OutcomeDTO.SubmitOutcome request) {
         // Fetch the selected option from the database
         Options selectedOption = optionsRepository.findById(request.getSelectedOptionId())
                 .orElseThrow(() -> new RuntimeException("Option not found with id: " + request.getSelectedOptionId()));
-
-        // Create a new Outcome entity
-        Outcome outcome = new Outcome();
-        outcome.setTestId(testId);  // 👈 Use testId from method parameter
+    
+        // Check if an outcome already exists for the given testId, userId, and questionId
+        Outcome outcome = outcomeRepository.findByTestIdAndUserIdAndQuestionId(testId, request.getUserId(), request.getQuestionId())
+                .orElse(new Outcome()); // If not found, create a new one
+    
+        // Set/update fields
+        outcome.setTestId(testId);
         outcome.setQuestionId(request.getQuestionId());
         outcome.setUserId(request.getUserId());
         outcome.setSelectedOptionId(request.getSelectedOptionId());
-
-        // Set isCorrect based on the selected option's correctness
         outcome.setIsCorrect(selectedOption.isCorrect());
-
-        // Save outcome
+    
+        // Save outcome (update if exists, insert if new)
         return outcomeRepository.save(outcome);
     }
+    
 
-    public List<Outcome> getOutcomesByTestId(UUID testId) {
-        return outcomeRepository.findByTestId(testId);
+  
+    public List<Outcome> getUserOutcomesByTestId(UUID testId, Integer userId) {
+        return outcomeRepository.findByTestIdAndUserId(testId, userId);
     }
+    
 }
