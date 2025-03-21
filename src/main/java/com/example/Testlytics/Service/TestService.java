@@ -54,21 +54,29 @@ public class TestService {
         return convertToDTO(savedTest);
     }
 
-    // ✅ UPDATE TEST
-    public TestDTO updateTest(UUID testId, TestDTO testDTO) {
-        Optional<Test> optionalTest = testRepository.findActiveTestById(testId);
-        if (optionalTest.isPresent()) {
-            Test existingTest = optionalTest.get();
-            existingTest.setTestName(testDTO.getTestName());
-            existingTest.setTestDate(testDTO.getTestDate());
-            existingTest.setTestDuration(testDTO.getTestDuration());
-            existingTest.setStartTime(testDTO.getStartTime());
-            existingTest.setEndTime(testDTO.getEndTime());
-            Test updatedTest = testRepository.save(existingTest);
-            return convertToDTO(updatedTest);
+    // ✅ UPDATE TEST (Prevents updating a deleted test)
+public TestDTO updateTest(UUID testId, TestDTO testDTO) {
+    Optional<Test> optionalTest = testRepository.findById(testId);
+    
+    if (optionalTest.isPresent()) {
+        Test existingTest = optionalTest.get();
+
+        // ❌ Prevent updates on deleted tests
+        if (existingTest.getDeletedOn() != null) {
+            throw new RuntimeException("Cannot update a deleted test.");
         }
-        return null;
+
+        existingTest.setTestName(testDTO.getTestName());
+        existingTest.setTestDate(testDTO.getTestDate());
+        existingTest.setTestDuration(testDTO.getTestDuration());
+        existingTest.setStartTime(testDTO.getStartTime());
+        existingTest.setEndTime(testDTO.getEndTime());
+        Test updatedTest = testRepository.save(existingTest);
+        return convertToDTO(updatedTest);
     }
+    throw new RuntimeException("Test not found.");
+}
+
 
     // ✅ DELETE TEST
     public void deleteTest(UUID testId) {

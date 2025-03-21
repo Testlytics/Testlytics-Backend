@@ -22,6 +22,12 @@ public class UserService {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
     }
+    public boolean existsByEmail(String email) {
+        return userRepository.existsByEmail(email);
+    }
+
+   
+    
 
     /**
      * Generates a unique 4-digit user ID.

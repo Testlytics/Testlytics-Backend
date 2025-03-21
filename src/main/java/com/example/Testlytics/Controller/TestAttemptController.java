@@ -2,13 +2,12 @@ package com.example.Testlytics.Controller;
 
 import com.example.Testlytics.DTO.ApiResponse;
 import com.example.Testlytics.DTO.TestAttemptDTO.TestAttemptFeedbackRequest;
-import com.example.Testlytics.DTO.TestAttemptDTO.TestAttemptStartRequest;
 import com.example.Testlytics.DTO.TestAttemptDTO.TestAttemptSubmitRequest;
 import com.example.Testlytics.Service.TestAttemptService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Optional;
+
 import java.util.UUID;
 
 @RestController
@@ -32,8 +31,8 @@ public class TestAttemptController {
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
-    /**
-     * Submit a test attempt.
+    /*
+     Submit a test attempt.
      */
     @PutMapping("/submit")
     public ResponseEntity<ApiResponse<?>> submitTestAttempt(
@@ -88,7 +87,7 @@ public ResponseEntity<ApiResponse<?>> addTeacherFeedback(
     /**
      * Get the average score for a subject.
      */
-    @GetMapping("/subjects/{subjectId}/average-score")
+    @GetMapping("/subjects/{subjectId}/average")
     public ResponseEntity<ApiResponse<Double>> getAverageScore(@PathVariable UUID subjectId) {
         Double averageScore = service.getAverageScoreBySubject(subjectId).orElse(0.0);
         return ResponseEntity.ok(new ApiResponse<>(200, "Success", "Average score retrieved", averageScore));
