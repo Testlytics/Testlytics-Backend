@@ -17,8 +17,9 @@ import java.util.UUID;
 public class QuestionController {
 
     @Autowired
-    private QuestionService questionService;
+    private final QuestionService questionService;
 
+    // ✅ Create a question for a specific test
     @PostMapping("/{testId}")
     public ResponseEntity<QuestionDTO> createQuestion(
             @PathVariable UUID testId,
@@ -29,17 +30,24 @@ public class QuestionController {
         return ResponseEntity.ok(createdQuestion);
     }
 
-    // ✅ Add GET mapping for all questions
+    // ✅ Get all questions
     @GetMapping
     public ResponseEntity<List<QuestionDTO>> getAllQuestions() {
         List<QuestionDTO> questions = questionService.getAllQuestions();
         return ResponseEntity.ok(questions);
     }
 
-    // ✅ Add GET mapping for a specific question by ID
+    // ✅ Get a specific question by ID
     @GetMapping("/{questionId}")
     public ResponseEntity<QuestionDTO> getQuestionById(@PathVariable UUID questionId) {
         QuestionDTO question = questionService.getQuestionById(questionId);
         return ResponseEntity.ok(question);
+    }
+
+    // ✅ Get all questions for a given test ID
+    @GetMapping("/test/{testId}")
+    public ResponseEntity<List<QuestionDTO>> getQuestionsByTestId(@PathVariable UUID testId) {
+        List<QuestionDTO> questions = questionService.getQuestionsByTestId(testId);
+        return ResponseEntity.ok(questions);
     }
 }

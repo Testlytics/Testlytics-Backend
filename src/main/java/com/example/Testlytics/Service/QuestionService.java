@@ -19,14 +19,13 @@ public class QuestionService {
     private final QuestionRepository questionRepository;
     private final TestDetailsRepository testDetailsRepository;
 
+    // ✅ Create a new question
     public QuestionDTO createQuestion(UUID testId, String questionText, String answer) {
-        // Fetch TestDetails by testId
         TestDetails testDetails = testDetailsRepository.findById(testId)
                 .orElseThrow(() -> new RuntimeException("TestDetails not found for ID: " + testId));
 
-        // Create and save Question
         Question question = new Question();
-        question.setTestDetails(testDetails); // ✅ Correctly set TestDetails entity
+        question.setTestDetails(testDetails);
         question.setQuestionText(questionText);
         question.setAnswer(answer);
 
@@ -34,31 +33,46 @@ public class QuestionService {
 
         return new QuestionDTO(
                 savedQuestion.getQuestionId(),
-                savedQuestion.getTestDetails().getTestId(), // ✅ Get testId from TestDetails
+                savedQuestion.getTestDetails().getTestId(),
                 savedQuestion.getQuestionText(),
                 savedQuestion.getAnswer()
         );
     }
 
+    // ✅ Get all questions
     public List<QuestionDTO> getAllQuestions() {
         List<Question> questions = questionRepository.findAll();
-        return questions.stream().map(question -> new QuestionDTO(
-                question.getQuestionId(),
-                question.getTestDetails().getTestId(), // ✅ Get testId from TestDetails
-                question.getQuestionText(),
-                question.getAnswer()
-        )).collect(Collectors.toList());
+        return questions.stream()
+                .map(q -> new QuestionDTO(
+                        q.getQuestionId(),
+                        q.getTestDetails().getTestId(),
+                        q.getQuestionText(),
+                        q.getAnswer()))
+                .collect(Collectors.toList());
     }
 
+    // ✅ Get a question by its ID
     public QuestionDTO getQuestionById(UUID questionId) {
         Question question = questionRepository.findById(questionId)
                 .orElseThrow(() -> new RuntimeException("Question not found for ID: " + questionId));
 
         return new QuestionDTO(
                 question.getQuestionId(),
-                question.getTestDetails().getTestId(), // ✅ Get testId from TestDetails
+                question.getTestDetails().getTestId(),
                 question.getQuestionText(),
                 question.getAnswer()
         );
+    }
+
+    // ✅ Get all questions by test ID
+    public List<QuestionDTO> getQuestionsByTestId(UUID testId) {
+        List<Question> questions = questionRepository.findByTestDetails_TestId(testId);
+        return questions.stream()
+                .map(q -> new QuestionDTO(
+                        q.getQuestionId(),
+                        q.getTestDetails().getTestId(),
+                        q.getQuestionText(),
+                        q.getAnswer()))
+                .collect(Collectors.toList());
     }
 }
