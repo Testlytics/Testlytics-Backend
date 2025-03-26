@@ -29,6 +29,7 @@
     <properties>
         <java.version>17</java.version>
     </properties>
+    
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -42,7 +43,7 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
-
+ 
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
@@ -64,12 +65,40 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-types-52</artifactId>
-            <version>2.16.2</version>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+            <version>3.2.3</version> <!-- Adjust as needed -->
         </dependency>
-    </dependencies>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-api</artifactId>
+            <version>0.11.5</version>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <version>0.11.5</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+            <version>0.11.5</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.itextpdf</groupId>
+            <artifactId>itext7-core</artifactId>
+            <version>9.1.0</version>
+            <type>pom</type>
+        </dependency>
+        
 
+
+
+    </dependencies>
+    
+ 
     <build>
         <plugins>
             <plugin>
@@ -98,5 +127,5 @@
             </plugin>
         </plugins>
     </build>
-
+ 
 </project>
