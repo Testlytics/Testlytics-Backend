@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+
+@CrossOrigin(origins = "http://localhost:5173")  
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
@@ -100,7 +102,7 @@ public ResponseEntity<ApiResponse<UserDTO>> createUser(
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new ApiResponse<>(201, "success", "User created successfully", UserDTO.fromUser(createdUser)));
     } catch (DataIntegrityViolationException e) {
-        return ResponseEntity.badRequest().body(new ApiResponse<>(400, "error", "Email or username already exists", null));
+        return ResponseEntity.badRequest().body(new ApiResponse<>(400, "error", "Email already exists", null));
     }
 }
     
