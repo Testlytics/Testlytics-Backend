@@ -12,13 +12,15 @@ public class UserDTO {
     private String name;
     private String email;
     private String image; // Store image as Base64 string
+    private String role; // Role name
 
     // ✅ Constructor
-    public UserDTO(Integer userId, String name, String email, String image) {
+    public UserDTO(Integer userId, String name, String email, String image, String role) {
         this.userId = userId;
         this.name = name;
         this.email = email;
         this.image = image;
+        this.role = role;
     }
 
     // ✅ No-args constructor (IMPORTANT for Jackson)
@@ -31,6 +33,12 @@ public class UserDTO {
         if (user.getImage() != null) {
             base64Image = Base64.getEncoder().encodeToString(user.getImage());
         }
-        return new UserDTO(user.getUserId(), user.getUsername(), user.getEmail(), base64Image);
+        return new UserDTO(
+                user.getUserId(),
+                user.getUsername(),
+                user.getEmail(),
+                base64Image,
+                user.getRole().getRoleName() // Extract role name
+        );
     }
 }

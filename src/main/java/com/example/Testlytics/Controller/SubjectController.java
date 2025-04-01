@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-@CrossOrigin(origins = "http://localhost:5173")  
+ 
 @RestController
 @RequestMapping("/api/subjects")
 public class SubjectController {
@@ -56,4 +56,5 @@ public class SubjectController {
 
         return ResponseEntity.ok(new ApiResponse<>(200, "OK", "Subject retrieved successfully", subjectDTO));
     }
+    
 }
