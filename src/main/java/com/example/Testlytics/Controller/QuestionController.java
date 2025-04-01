@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.logging.Logger;
  
-@CrossOrigin(origins = "http://localhost:5173")  
+
 @RestController
 @RequestMapping("/api")
 public class QuestionController {
