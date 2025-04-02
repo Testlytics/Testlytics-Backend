@@ -17,6 +17,9 @@ public interface OutcomeRepository extends JpaRepository<Outcome, UUID> {
     List<Outcome> findByTestIdAndUserId(UUID testId, Integer userId);
     
     Optional<Outcome> findByTestIdAndUserIdAndQuestionId(UUID testId, Integer userId, UUID questionId);
+    // In OutcomeRepository interface
+long countByTestIdAndUserIdAndIsCorrect(UUID testId, Integer userId, boolean isCorrect);
+long countByTestIdAndUserId(UUID testId, Integer userId);
 
 
 }

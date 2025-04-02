@@ -61,19 +61,24 @@ public class TestAttemptService {
     
         TestAttempt attempt = attemptOpt.get();
     
-        // ✅ Calculate score based on correct outcomes
-        long correctAnswers = outcomeRepository.countByTestIdAndUserIdAndIsCorrectTrue(testId, userId);
+        // ✅ Calculate score based on correct outcomes (fixed count query)
+        long correctAnswers = outcomeRepository.countByTestIdAndUserIdAndIsCorrect(testId, userId, true);
     
-        attempt.setScore((int) correctAnswers); // Each correct answer gives 1 score
-        attempt.setAttemptEndTime(LocalDateTime.now()); // ⏳ End time is updated now
-        attempt.setQuery(request.getQuery()); // ✅ Only query is set
-        attempt.setFeedback(null); // ❌ Feedback should be null (teacher adds this later)
+        // Convert to percentage if needed, or keep as absolute count
+        int totalQuestions = (int) outcomeRepository.countByTestIdAndUserId(testId, userId);
+        double scorePercentage = totalQuestions > 0 ? 
+            ((double) correctAnswers / totalQuestions) * 100 : 0;
+    
+        attempt.setScore((int) correctAnswers); // Store absolute correct count
+        attempt.setAttemptEndTime(LocalDateTime.now());
+        attempt.setQuery(request.getQuery());
+        attempt.setFeedback(null);
     
         repository.save(attempt);
     
-        return new ApiResponse<>(200, "Success", "Test attempt submitted successfully", "Final score: " + correctAnswers);
+        return new ApiResponse<>(200, "Success", "Test attempt submitted successfully", 
+            String.format("Score: %d/%d (%.2f%%)", correctAnswers, totalQuestions, scorePercentage));
     }
-    
 
     public ApiResponse<String> addTeacherFeedback(UUID testId, Integer userId, TestAttemptFeedbackRequest request) {
         TestAttemptId attemptId = new TestAttemptId(testId, userId);
