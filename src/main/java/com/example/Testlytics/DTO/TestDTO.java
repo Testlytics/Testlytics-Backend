@@ -3,6 +3,7 @@ package com.example.Testlytics.DTO;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.UUID;
 
@@ -18,4 +19,7 @@ public class TestDTO {
     private LocalTime startTime;
     private LocalTime endTime;
     private boolean isActive;  // ✅ New field
+    private boolean isPublished; 
+    private LocalDateTime deletedOn;
 }
+

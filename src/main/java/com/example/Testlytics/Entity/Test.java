@@ -55,6 +55,10 @@ public class Test {
 
     @Column(name = "deleted_on")
     private LocalDateTime deletedOn;
+     
+    @Column(name = "is_published", nullable = false, columnDefinition = "boolean default false")
+    @Builder.Default 
+    private boolean isPublished = false; 
 
     public boolean isDeleted() {
         return deletedOn != null;

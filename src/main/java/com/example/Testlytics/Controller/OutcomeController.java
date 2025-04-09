@@ -45,5 +45,17 @@ public ResponseEntity<ApiResponse<List<Outcome>>> getUserOutcomesByTestId(
 
     return ResponseEntity.ok(apiResponse);
 }
+@GetMapping("/accuracy")
+public ResponseEntity<ApiResponse<Double>> getAccuracyForTest(
+        @PathVariable UUID testId,
+        @RequestParam Integer userId) {
+
+    double accuracy = outcomeService.calculateAccuracy(testId, userId);
+    ApiResponse<Double> response = new ApiResponse<>(
+            200, "OK", "Accuracy calculated successfully", accuracy);
+
+    return ResponseEntity.ok(response);
+}
+
 
 }

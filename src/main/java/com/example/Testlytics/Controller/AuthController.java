@@ -32,38 +32,45 @@ public class AuthController {
         this.jwtTokenProvider = jwtTokenProvider;
         this.userRepository = userRepository;
     }
-
     @PostMapping("/login")
-public ResponseEntity<?> login(@RequestBody Map<String, String> credentials) {
-    String email = credentials.get("email");
-    String password = credentials.get("password");
-
-    try {
-       
-        Authentication authentication = authenticationManager.authenticate(
-            new UsernamePasswordAuthenticationToken(email, password)
-        );
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-
-        // Fetch user details from DB
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid email or password"));
-
-        // Generate JWT token
-        String token = jwtTokenProvider.createToken(email, user.getRole().getRoleName());
-
-        // Return token and role
-        Map<String, String> response = new HashMap<>();
-        response.put("token", token);
-        response.put("role", user.getRole().getRoleName());
-
-        return ResponseEntity.ok(response);
-
-    } catch (Exception e) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(Map.of("error", "Invalid credentials"));
+    public ResponseEntity<?> login(@RequestBody Map<String, String> credentials) {
+        String email = credentials.get("email");
+        String password = credentials.get("password");
+    
+        try {
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid email or password"));
+    
+            // Check if user is soft-deleted
+            if (user.getDeletedOn() != null) {
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User account is deactivated");
+            }
+    
+            // Authenticate credentials
+            Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(email, password)
+            );
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+    
+            // Generate JWT token
+            String token = jwtTokenProvider.createToken(email, user.getRole().getRoleName());
+    
+            // Return token and role
+            Map<String, Object> response = new HashMap<>();
+            response.put("token", token);
+            response.put("role", user.getRole().getRoleName());
+            response.put("userId", user.getUserId());
+    
+            return ResponseEntity.ok(response);
+    
+        } catch (ResponseStatusException e) {
+            throw e; // Return as is
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Invalid credentials"));
+        }
     }
-}
+    
 @PostMapping("/logout")
 public ResponseEntity<?> logout(@RequestHeader("Authorization") String authHeader) {
     if (authHeader != null && authHeader.startsWith("Bearer ")) {

@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -30,12 +31,12 @@ public class TestController {
     }
 
     // ✅ GET TEST BY ID
-    // @GetMapping("/{testId}")
-    // @PreAuthorize("hasAnyRole('STUDENT', 'ADMIN')")
-    // public ResponseEntity<ApiResponse<TestDTO>> getTestById(@PathVariable UUID testId) {
-    //     TestDTO test = testService.getTestById(testId);
-    //     return ResponseEntity.ok(new ApiResponse<>(200, "OK", "Test retrieved successfully", test));
-    // }
+    @GetMapping("/{testId}")
+    @PreAuthorize("hasAnyRole('STUDENT', 'ADMIN')")
+    public ResponseEntity<ApiResponse<TestDTO>> getTestById(@PathVariable UUID testId) {
+        TestDTO test = testService.getTestById(testId);
+        return ResponseEntity.ok(new ApiResponse<>(200, "OK", "Test retrieved successfully", test));
+    }
     @GetMapping("/upcoming")
     @PreAuthorize("hasAnyRole('STUDENT', 'ADMIN')")
     public ResponseEntity<ApiResponse<List<TestDTO>>> getUpcomingTests() {
@@ -80,4 +81,18 @@ public class TestController {
         testService.deleteTest(testId);
         return ResponseEntity.ok(new ApiResponse<>(200, "Success", "Test deleted successfully", null));
     }
+
+    @PatchMapping("/{testId}/publish")
+public ResponseEntity<ApiResponse<TestDTO>> publishTest(@PathVariable UUID testId) {
+    boolean updated = testService.publishTest(testId);
+    if (updated) {
+        TestDTO updatedTest = testService.getTestById(testId); // Fetch the updated test
+        return ResponseEntity.ok(new ApiResponse<>(200, "Success", "Test published successfully", updatedTest));
+    }
+    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+            .body(new ApiResponse<>(404, "Error", "Test not found", null));
+}
+
+
+
 }

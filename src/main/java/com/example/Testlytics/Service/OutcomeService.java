@@ -46,5 +46,30 @@ public class OutcomeService {
     public List<Outcome> getUserOutcomesByTestId(UUID testId, Integer userId) {
         return outcomeRepository.findByTestIdAndUserId(testId, userId);
     }
+    public double calculateAccuracy(UUID testId, Integer userId) {
+        List<Outcome> outcomes = outcomeRepository.findByTestIdAndUserId(testId, userId);
     
+        // If no outcomes exist, return 0%
+        if (outcomes == null || outcomes.isEmpty()) {
+            return 0.0;
+        }
+    
+        // Count only answered questions (selectedOptionId != null)
+        long totalAnswered = outcomes.stream()
+            .filter(o -> o.getSelectedOptionId() != null)
+            .count();
+    
+        // If no questions were answered, return 0%
+        if (totalAnswered == 0) {
+            return 0.0;
+        }
+    
+        // Count correct answers
+        long correctAnswers = outcomes.stream()
+            .filter(o -> o.getSelectedOptionId() != null && Boolean.TRUE.equals(o.getIsCorrect()))
+            .count();
+    
+        // Calculate accuracy (rounded to 2 decimal places)
+        return Math.round((correctAnswers * 100.0 / totalAnswered) * 100) / 100.0;
+    }
 }

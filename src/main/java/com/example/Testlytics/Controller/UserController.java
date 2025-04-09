@@ -1,6 +1,7 @@
 package com.example.Testlytics.Controller;
 
 import com.example.Testlytics.DTO.ApiResponse;
+import com.example.Testlytics.DTO.ChangePasswordRequest;
 import com.example.Testlytics.DTO.UserDTO;
 import com.example.Testlytics.Entity.Role;
 import com.example.Testlytics.Entity.User;
@@ -15,6 +16,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
+import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -31,7 +33,7 @@ public class UserController {
     private RoleService roleService;
 
     // Get all users (ignoring any role filtering)
-    @PreAuthorize("hasRole('ADMIN')")
+    // @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public ResponseEntity<ApiResponse<List<UserDTO>>> getAllUsers() {
         List<UserDTO> userDTOs = userService.getAllActiveUsers()
@@ -42,7 +44,7 @@ public class UserController {
     }
 
     // Get a user by ID
-    @PreAuthorize("hasRole('ADMIN')")
+    // @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<UserDTO>> getUserById(@PathVariable Integer id) {
         return userService.getUserById(id)
@@ -137,4 +139,11 @@ public ResponseEntity<ApiResponse<UserDTO>> createUser(
         }
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse<>(404, "error", "User not found", null));
     }
+    
+    @PostMapping("/changepassword")
+    public ResponseEntity<?> changePassword(@RequestBody ChangePasswordRequest request, Principal principal) {
+        userService.changePassword(principal.getName(), request);
+        return ResponseEntity.ok("Password changed successfully");
+    }
+    
 }

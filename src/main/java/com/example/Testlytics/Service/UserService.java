@@ -1,6 +1,7 @@
 package com.example.Testlytics.Service;
 
 
+import com.example.Testlytics.DTO.ChangePasswordRequest;
 import com.example.Testlytics.Entity.User;
 import com.example.Testlytics.Repository.UserRepository;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -16,6 +17,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
+    
     private final Random random = new Random();
 
     public UserService(UserRepository userRepository, RoleService roleService, BCryptPasswordEncoder passwordEncoder) {
@@ -100,5 +102,20 @@ public class UserService {
                     return true;
                 })
                 .orElse(false);
+    }
+
+    public void changePassword(String email, ChangePasswordRequest request) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Verify current password
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+            throw new RuntimeException("Current password is incorrect");
+        }
+
+        // Update to new password
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        user.setModifiedOn(java.time.LocalDateTime.now());
+        userRepository.save(user);
     }
 }

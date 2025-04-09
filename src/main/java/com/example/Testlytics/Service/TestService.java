@@ -5,6 +5,7 @@ import com.example.Testlytics.Entity.Test;
 import com.example.Testlytics.Repository.TestRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -22,61 +23,72 @@ public class TestService {
 
     // ✅ GET ALL TESTS
     public List<TestDTO> getAllTests() {
-    List<Test> tests = testRepository.findAllActiveTests()
-            .stream()
-            .filter(test -> test.getTestDate().isAfter(LocalDate.now()) ||
-                    (test.getTestDate().isEqual(LocalDate.now()) && test.getEndTime().isAfter(LocalTime.now())))
-            .collect(Collectors.toList());
-    return tests.stream().map(this::convertToDTO).collect(Collectors.toList());
-}
-
+        List<Test> tests = testRepository.findAllActiveTests()
+                .stream()
+                .filter(test -> test.getTestDate().isAfter(LocalDate.now()) ||
+                        (test.getTestDate().isEqual(LocalDate.now()) && test.getEndTime().isAfter(LocalTime.now())))
+                .collect(Collectors.toList());
+        return tests.stream().map(this::convertToDTO).collect(Collectors.toList());
+    }
 
     // ✅ GET TEST BY ID
     public TestDTO getTestById(UUID testId) {
         Optional<Test> test = testRepository.findActiveTestById(testId);
         return test.map(this::convertToDTO).orElse(null);
     }
+
+    // ✅ GET UPCOMING TESTS
     public List<TestDTO> getUpcomingTests() {
         List<Test> upcomingTests = testRepository.findUpcomingTests();
         return upcomingTests.stream().map(this::convertToDTO).collect(Collectors.toList());
     }
+
+    // ✅ GET COMPLETED TESTS
     public List<TestDTO> getCompletedTests() {
         List<Test> completedTests = testRepository.findCompletedTests();
         return completedTests.stream().map(this::convertToDTO).collect(Collectors.toList());
     }
-    
-    
 
     // ✅ CREATE TEST
     public TestDTO createTest(TestDTO testDTO) {
+        LocalDate testDate = testDTO.getTestDate();
+        LocalTime startTime = testDTO.getStartTime();
+        LocalTime endTime = testDTO.getEndTime();
+
+        // Check for time conflict
+        boolean hasConflict = testRepository.existsConflictingTest(testDate, startTime, endTime);
+        if (hasConflict) {
+            throw new IllegalArgumentException("A test already exists during the specified time slot.");
+        }
+
+        // Save only if no conflict
         Test test = convertToEntity(testDTO);
         Test savedTest = testRepository.save(test);
         return convertToDTO(savedTest);
     }
 
     // ✅ UPDATE TEST (Prevents updating a deleted test)
-public TestDTO updateTest(UUID testId, TestDTO testDTO) {
-    Optional<Test> optionalTest = testRepository.findById(testId);
-    
-    if (optionalTest.isPresent()) {
-        Test existingTest = optionalTest.get();
+    public TestDTO updateTest(UUID testId, TestDTO testDTO) {
+        Optional<Test> optionalTest = testRepository.findById(testId);
+        if (optionalTest.isPresent()) {
+            Test existingTest = optionalTest.get();
 
-        // ❌ Prevent updates on deleted tests
-        if (existingTest.getDeletedOn() != null) {
-            throw new RuntimeException("Cannot update a deleted test.");
+            // ❌ Prevent updates on deleted tests
+            if (existingTest.getDeletedOn() != null) {
+                throw new RuntimeException("Cannot update a deleted test.");
+            }
+
+            existingTest.setTestName(testDTO.getTestName());
+            existingTest.setTestDate(testDTO.getTestDate());
+            existingTest.setTestDuration(testDTO.getTestDuration());
+            existingTest.setStartTime(testDTO.getStartTime());
+            existingTest.setEndTime(testDTO.getEndTime());
+            existingTest.setPublished(testDTO.isPublished()); // Update the published status
+            Test updatedTest = testRepository.save(existingTest);
+            return convertToDTO(updatedTest);
         }
-
-        existingTest.setTestName(testDTO.getTestName());
-        existingTest.setTestDate(testDTO.getTestDate());
-        existingTest.setTestDuration(testDTO.getTestDuration());
-        existingTest.setStartTime(testDTO.getStartTime());
-        existingTest.setEndTime(testDTO.getEndTime());
-        Test updatedTest = testRepository.save(existingTest);
-        return convertToDTO(updatedTest);
+        throw new RuntimeException("Test not found.");
     }
-    throw new RuntimeException("Test not found.");
-}
-
 
     // ✅ DELETE TEST
     public void deleteTest(UUID testId) {
@@ -86,6 +98,28 @@ public TestDTO updateTest(UUID testId, TestDTO testDTO) {
             test.setDeletedOn(LocalDateTime.now());
             testRepository.save(test);
         }
+    }
+
+    // ✅ MARK TEST AS PUBLISHED
+    @Transactional
+    public boolean publishTest(UUID testId) {
+        Optional<Test> optionalTest = testRepository.findById(testId);
+        if (optionalTest.isPresent()) {
+            Test test = optionalTest.get();
+
+            // Check if the test is already completed (optional)
+            if (!test.isCompleted()) {
+                throw new IllegalStateException("Test is not completed and cannot be published.");
+            }
+
+            // Mark the test as published
+            test.setPublished(true);
+
+            // Save the updated test entity
+            testRepository.save(test); // This ensures the changes are persisted
+            return true;
+        }
+        return false;
     }
 
     // ✅ Convert Entity to DTO
@@ -99,6 +133,7 @@ public TestDTO updateTest(UUID testId, TestDTO testDTO) {
                 .startTime(test.getStartTime())
                 .endTime(test.getEndTime())
                 .isActive(test.isActive())  // ✅ Now includes `isActive` status
+                .isPublished(test.isPublished())  // ✅ Now includes `isPublished`
                 .build();
     }
 
@@ -112,6 +147,7 @@ public TestDTO updateTest(UUID testId, TestDTO testDTO) {
                 .testDuration(testDTO.getTestDuration())
                 .startTime(testDTO.getStartTime())
                 .endTime(testDTO.getEndTime())
+                .isPublished(testDTO.isPublished()) // Ensure `isPublished` is mapped from DTO to Entity
                 .build();
     }
 }
