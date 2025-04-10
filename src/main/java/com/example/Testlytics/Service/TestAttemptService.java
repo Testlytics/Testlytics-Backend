@@ -2,6 +2,7 @@ package com.example.Testlytics.Service;
  
 import com.example.Testlytics.DTO.ApiResponse;
 import com.example.Testlytics.DTO.TestAttemptDTO.*;
+import com.example.Testlytics.Entity.Test;
 import com.example.Testlytics.Entity.TestAttempt;
 import com.example.Testlytics.Entity.TestAttemptId;
 import com.example.Testlytics.Repository.OutcomeRepository;
@@ -157,22 +158,28 @@ public class TestAttemptService {
      * Get missed tests of a user.
      */
     public ApiResponse<List<UUID>> getMissedTests(Integer userId) {
-        List<UUID> allTests = testRepository.findAllTestIds(); // Get all test IDs
-        List<UUID> attendedTests = repository.findTestAttemptsByUserId(userId).stream()
+        // Get only completed tests
+        List<UUID> completedTestIds = testRepository.findCompletedTests().stream()
+                .map(Test::getTestId)
+                .collect(Collectors.toList());
+    
+        // Get tests attended by the user
+        List<UUID> attendedTestIds = repository.findTestAttemptsByUserId(userId).stream()
                 .map(attempt -> attempt.getId().getTestId())
                 .collect(Collectors.toList());
- 
-        // Find missed tests (allTests - attendedTests)
-        List<UUID> missedTests = allTests.stream()
-                .filter(testId -> !attendedTests.contains(testId))
+    
+        // Filter out attended tests from completed tests
+        List<UUID> missedTests = completedTestIds.stream()
+                .filter(testId -> !attendedTestIds.contains(testId))
                 .collect(Collectors.toList());
- 
+    
         if (missedTests.isEmpty()) {
-            return new ApiResponse<>(200, "Success", "User has attended all tests", null);
+            return new ApiResponse<>(200, "Success", "User has attended all completed tests", null);
         }
- 
-        return new ApiResponse<>(200, "Success", "Missed tests found", missedTests);
+    
+        return new ApiResponse<>(200, "Success", "Missed completed tests found", missedTests);
     }
+    
  
  
 }
